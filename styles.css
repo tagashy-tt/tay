@@ -6,7 +6,7 @@ body {
     margin: 0;
     min-height: 100vh;
     backdrop-filter: blur(2px) brightness(0.85);
-    animation: fadeInBg 2s ease-in;
+    animation: fadeInBg 2s ease-in, floatBg 12s ease-in-out infinite alternate;
 }
 .container {
     background: rgba(24,24,24,0.92);
@@ -15,11 +15,12 @@ body {
     padding: 32px 24px 16px 24px;
     max-width: 400px;
     margin: 40px auto;
-    animation: slideUp 1.2s cubic-bezier(.68,-0.55,.27,1.55);
+    animation: slideUp 1.2s cubic-bezier(.68,-0.55,.27,1.55), floatContainer 8s ease-in-out infinite alternate;
 }
 header {
     text-align: center;
     margin-bottom: 24px;
+    animation: fadeInText 1.5s ease, floatHeader 10s ease-in-out infinite alternate;
 }
 .avatar {
     width: 100px;
@@ -27,36 +28,33 @@ header {
     border-radius: 50%;
     border: 4px solid #000000;
     margin-bottom: 12px;
-    animation: popIn 1s cubic-bezier(.68,-0.55,.27,1.55);
+    animation: popIn 1s cubic-bezier(.68,-0.55,.27,1.55), floatAvatar 7s ease-in-out infinite alternate;
 }
 .avatar.anime-border {
     box-shadow: 0 0 0 8px #3cff00, 0 0 24px 8px rgba(0, 0, 0, 0.467), 0 0 0 16px #00ccff;
     border: 4px solid #fff;
-    animation: animeGlow 2s infinite alternate;
-}
-@keyframes animeGlow {
-    0% { box-shadow: 0 0 0 8px #ff0000, 0 0 24px 8px #fff7, 0 0 0 16px #000000; }
-    100% { box-shadow: 0 0 0 12px #ff0000, 0 0 32px 12px #1100ff, 0 0 0 20px #fff; }
+    animation: animeGlow 2s infinite alternate, floatAvatar 7s ease-in-out infinite alternate;
 }
 header h1 {
     font-family: 'Luckiest Guy', cursive, Arial, sans-serif;
     letter-spacing: 2px;
     font-size: 2.5em;
     text-shadow: 2px 2px 0 #ff0000, 4px 4px 0 #ff3c00;
-    animation: fadeInText 1.5s ease;
+    animation: fadeInText 1.5s ease, floatHeader 10s ease-in-out infinite alternate;
 }
 .subtitle {
     font-style: italic;
     font-size: 1.2em;
     color: #ffffff;
     text-shadow: 1px 1px 0 #ff0000;
-    animation: fadeInText 1.5s ease;
+    animation: fadeInText 1.5s ease, floatHeader 10s ease-in-out infinite alternate;
 }
 .links {
     display: flex;
     flex-direction: column;
     gap: 16px;
     margin-bottom: 24px;
+    animation: fadeInText 1.5s ease, floatLinks 9s ease-in-out infinite alternate;
 }
 .btn {
     text-decoration: none;
@@ -67,7 +65,7 @@ header h1 {
     transition: background 0.2s, transform 0.2s;
     font-size: 1.1em;
     box-shadow: 0 2px 8px rgb(255, 0, 0);
-    animation: fadeInBtn 1.5s ease;
+    animation: fadeInBtn 1.5s ease, floatBtn 6s ease-in-out infinite alternate;
 }
 .btn.tiktok { background: #010101; color: #fff; border: 2px solid #25F4EE; }
 .btn.instagram { background: linear-gradient(90deg,#ff1111,#fa00c48a); color: #fff; border: none; }
@@ -76,12 +74,13 @@ header h1 {
 .btn:hover { transform: scale(1.05); opacity: 0.9; }
 .about {
     margin-bottom: 24px;
+    animation: fadeInText 1.5s ease, floatAbout 8s ease-in-out infinite alternate;
 }
 .about h2 {
     font-family: 'Luckiest Guy', cursive, Arial, sans-serif;
     color: #ffffff;
     text-shadow: 1px 1px 0 #0026ff;
-    animation: fadeInText 1.5s ease;
+    animation: fadeInText 1.5s ease, floatAbout 8s ease-in-out infinite alternate;
 }
 .about p {
     font-family: 'Comic Neue', cursive, Arial, sans-serif;
@@ -91,61 +90,21 @@ header h1 {
     border-radius: 8px;
     padding: 12px;
     box-shadow: 0 2px 8px #ff030333;
-    animation: fadeInText 1.5s ease;
+    animation: fadeInText 1.5s ease, floatAbout 8s ease-in-out infinite alternate;
 }
 footer {
     text-align: center;
     color: #aaa;
     font-size: 0.9em;
     margin-top: 16px;
-    animation: fadeInText 1.5s ease;
+    animation: fadeInText 1.5s ease, floatFooter 12s ease-in-out infinite alternate;
 }
 @media (max-width: 500px) {
     .container { padding: 16px 8px; }
     .avatar { width: 70px; height: 70px; }
 }
-/* ...existing code... */
-/* If you need to import fonts, use @import in CSS, not <link> tags */
-@import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Comic+Neue:wght@700&display=swap');
-/* ...existing code... */
-/* Removed invalid selector. If you want to style links, use a valid selector like .links a or a[href] */
-/*
-.links a {
-    text-decoration: none;
-    color: #ff0000;
-    font-weight: bold;
-}
-*/
-/* Animación de entrada para el body */
-body {
-    /* ...existing code... */
-    animation: fadeInBg 2s ease-in;
-}
 
-/* Animación de entrada para el contenedor principal */
-.container {
-    /* ...existing code... */
-    animation: slideUp 1.2s cubic-bezier(.68,-0.55,.27,1.55);
-}
-
-/* Animación de entrada para el avatar */
-.avatar {
-    /* ...existing code... */
-    animation: popIn 1s cubic-bezier(.68,-0.55,.27,1.55);
-}
-
-/* Animación de entrada para los botones */
-.btn {
-    /* ...existing code... */
-    animation: fadeInBtn 1.5s ease;
-}
-
-/* Animación de entrada para los textos */
-header h1, .subtitle, .about h2, .about p, footer {
-    animation: fadeInText 1.5s ease;
-}
-
-/* Keyframes para las animaciones */
+/* Animaciones de entrada */
 @keyframes fadeInBg {
     from { opacity: 0; filter: blur(8px); }
     to { opacity: 1; filter: blur(2px); }
@@ -167,3 +126,48 @@ header h1, .subtitle, .about h2, .about p, footer {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Animaciones flotantes continuas */
+@keyframes floatBg {
+    from { filter: brightness(0.85) blur(2px); }
+    50% { filter: brightness(1) blur(0px); }
+    to { filter: brightness(0.85) blur(2px); }
+}
+@keyframes floatContainer {
+    from { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    to { transform: translateY(0); }
+}
+@keyframes floatHeader {
+    from { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+    to { transform: translateY(0); }
+}
+@keyframes floatAvatar {
+    from { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+    to { transform: translateY(0); }
+}
+@keyframes floatLinks {
+    from { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+    to { transform: translateY(0); }
+}
+@keyframes floatBtn {
+    from { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+    to { transform: translateY(0); }
+}
+@keyframes floatAbout {
+    from { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+    to { transform: translateY(0); }
+}
+@keyframes floatFooter {
+    from { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+    to { transform: translateY(0); }
+}
+
+/* If you need to import fonts, use @import in CSS, not <link> tags */
+@import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Comic+Neue:wght@700&display=swap');

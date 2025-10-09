@@ -1,33 +1,155 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>_tagashy | Proyectos y Redes</title>
-    <link rel="stylesheet" href="styles.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tagashy — Enlaces & Contacto</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Luckiest+Guy&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <img src="https://pbs.twimg.com/media/FOemTzHWYAYKOkN.jpg:large" alt="_tagashy" class="avatar anime-border">
-            <h1>_tagashy</h1>
-            <p class="subtitle">Impulsa tus proyectos y ventas conmigo</p>
-        </header>
-        <section class="links">
-            <a href="https://www.tiktok.com/@_tagashy" target="_blank" class="btn tiktok">TikTok: @_tagashy</a>
-            <a href="https://www.instagram.com/_tagashy" target="_blank" class="btn instagram">Instagram: @_tagashy</a>
-            <a href="https://payhip.com/tagashy" target="_blank" class="btn payhip">Payhip: Productos y servicios</a>
-            <a href="https://pillar.io/tagashy" target="_blank" class="btn pillar">Pillar: Todos mis enlaces</a>
-        </section>
-        <section class="about">
-            <h2>Sobre mí</h2>
-            <p>
-                Soy creador digital y emprendedor. Sígueme en mis redes para descubrir mis proyectos, productos y contenido exclusivo. ¡Impulsa tu marca y aprende conmigo!
-            </p>
-        </section>
-        <footer>
-            <p>&copy; 2025 _tagashy. Todos los derechos reservados.</p>
-        </footer>
+  <!-- ANIMACIÓN DE FONDO (insertar justo al inicio del body) -->
+  <div class="bg-anim" aria-hidden="true"></div>
+
+  <main class="page">
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="avatar-wrap">
+          <!-- Enlace al pin de Pinterest (abre el pin). Reemplaza profile.jpg por la imagen que uses -->
+          <a href="https://pin.it/3MJAyDoNR" target="_blank" rel="noopener">
+            <img id="profileImg" class="avatar" src="https://i.pinimg.com/1200x/51/6a/92/516a92b3c4cf5782ca2aac7ac12581f6.jpg" alt="_tagashy">
+          </a>
+
+          <!-- SVG con stops que usan variables CSS (se actualizarán con JS) -->
+          <svg class="avatar-ring" viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1">
+                <stop offset="0" style="stop-color: var(--ring1, #ff7a00)"></stop>
+                <stop offset="1" style="stop-color: var(--ring2, #8b5cf6)"></stop>
+              </linearGradient>
+            </defs>
+            <circle cx="60" cy="60" r="54" stroke="url(#g1)" stroke-width="6" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h1 class="name">tagashy</h1>
+        <p class="role">Creador digital • Proyectos • Productos</p>
+      </div>
+    </header>
+
+    <section class="links-section">
+      <h2 class="section-title">Conecta conmigo</h2>
+      <div class="links-grid">
+        <a class="link-card tiktok" href="https://www.tiktok.com/@_tagashy" target="_blank" rel="noopener">TikTok — @_tagashy</a>
+        <a class="link-card instagram" href="https://www.instagram.com/tagashy.tt" target="_blank" rel="noopener">Instagram — @tagashy.tt</a>
+        <a class="link-card payhip" href="https://payhip.com/tagashy" target="_blank" rel="noopener">Payhip</a>
+        <a class="link-card pillar" href="https://pillar.io/tagashy" target="_blank" rel="noopener">Pillar</a>
+        <a class="link-card portfolio" href="https://thesyxtwixtor.godaddysites.com/" target="_blank" rel="noopener">Proyectos</a>
+        <a class="link-card youtube" href="https://www.youtube.com/@_tagashy" target="_blank" rel="noopener">YouTube</a>
+        <a class="link-card spotify" href="https://open.spotify.com/user/41tk6aum0rqacw6sqkpex9mrl?si=_ktmtx64S7Obt4ktgKTssQ&pi=PZx_0zLFRMqeW" target="_blank" rel="noopener">Spotify</a>
+      <a class="link-card wink app" href="https://play.google.com/store/apps/details?id=com.meitu.wink" target="_blank" rel="noopener">Wink</a>
+        <a class="link-card winkit app" href="https://play.google.com/store/apps/details?id=com.starii.winkit" target="_blank" rel="noopener">Winkit</a>
     </div>
+    </section>
+
+    <section class="contact-section">
+      <h2 class="section-title">Contacto rápido</h2>
+      <div class="contact-row">
+        <!-- Reemplaza PHONE_NUMBER por tu número en formato internacional sin signos, ejemplo 573001234567 -->
+        <a class="whatsapp pulse" href="https://wa.me/PHONE_NUMBER?text=Hola%20_tagashy" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp">WhatsApp</a>
+        <a class="email" href="mailto:fainvfx@gmail.com" aria-label="Enviar correo">Email</a>
+        <a class="hire" href="https://payhip.com/tagashy" target="_blank" rel="noopener noreferrer" aria-label="comprar">Compra</a>
+      </div>
+      <p class="note"></p>
+    </section>
+
+    <footer class="footer">
+      <small>&copy; 2025 _tagashy — All rights reserved</small>
+    </footer>
+  </main>
+
+  <script>
+    // micro-interacciones seguras (evita errores si elementos no existen)
+    document.querySelectorAll('.link-card').forEach((el, i) => {
+      el.style.animationDelay = (i * 80) + 'ms';
+    });
+
+    const hero = document.querySelector('.hero-inner');
+    if (hero) {
+      window.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 12;
+        const y = (e.clientY / window.innerHeight - 0.5) * 8;
+        hero.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      }, {passive:true});
+    }
+
+    // Extrae dos colores de la imagen de perfil y los aplica al aro y a las variables de acento.
+    (function applyRingColorsFromImage() {
+      const img = document.getElementById('profileImg');
+      if (!img) return;
+
+      function rgbToCss([r,g,b]) { return `rgb(${r}, ${g}, ${b})`; }
+
+      function averageColor(data, start, end, stride=4) {
+        let r=0,g=0,b=0,count=0;
+        for (let i=start; i<end; i+=stride) {
+          r += data[i]; g += data[i+1]; b += data[i+2]; count++;
+        }
+        return [Math.round(r/count), Math.round(g/count), Math.round(b/count)];
+      }
+
+      function computeColors() {
+        // pequeño canvas para rapidez
+        const w = 80, h = 80;
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        // dibuja la imagen centrada y recortada (cover)
+        const iw = img.naturalWidth, ih = img.naturalHeight;
+        if (!iw || !ih) return;
+        const scale = Math.max(w/iw, h/ih);
+        const sw = Math.round(w/scale), sh = Math.round(h/scale);
+        const sx = Math.max(0, Math.floor((iw - sw)/2));
+        const sy = Math.max(0, Math.floor((ih - sh)/2));
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
+
+        const imd = ctx.getImageData(0,0,w,h);
+        const data = imd.data;
+
+        // color principal: promedio de todo
+        const main = averageColor(data, 0, data.length, 4);
+
+        // color secundario: promedio de borde (para contraste)
+        const borderPixels = [];
+        // top rows + bottom rows + left/right columns
+        for (let y=0; y<h; y++) {
+          for (let x=0; x<w; x++) {
+            if (y < Math.floor(h*0.22) || y >= Math.floor(h*0.78) || x < Math.floor(w*0.12) || x >= Math.floor(w*0.88)) {
+              const idx = (y*w + x)*4;
+              borderPixels.push(data[idx], data[idx+1], data[idx+2]);
+            }
+          }
+        }
+        // flatten border data to simulate data array for averageColor
+        // averageColor expects [r,g,b,r,g,b,...] but with 4-step stride; reuse logic:
+        const borderData = new Uint8ClampedArray(borderPixels.length);
+        borderData.set(borderPixels);
+        const secondary = averageColor(borderData, 0, borderData.length, 3); // stride 3 here
+
+        // aplica colores como variables CSS
+        const root = document.documentElement;
+        root.style.setProperty('--ring1', rgbToCss(main));
+        root.style.setProperty('--ring2', rgbToCss(secondary));
+        root.style.setProperty('--accent1', rgbToCss(main));
+        root.style.setProperty('--accent2', rgbToCss(secondary));
+      }
+
+      if (img.complete && img.naturalWidth) {
+        computeColors();
+      } else {
+        img.addEventListener('load', computeColors);
+        img.addEventListener('error', () => { /* fallback: deja vars por defecto */ });
+      }
+    })();
+  </script>
 </body>
 </html>

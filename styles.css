@@ -1,173 +1,825 @@
-body {
-    background: url('https://wallpapercrafter.com/desktop/48473-anime-landscape-waterfall-cloud-5k-4k-hd-artist-artwork-digital-art.jpg') no-repeat center center fixed;
-    background-size: cover;
-    color: #fff;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    margin: 0;
-    min-height: 100vh;
-    backdrop-filter: blur(2px) brightness(0.85);
-    animation: fadeInBg 2s ease-in, floatBg 12s ease-in-out infinite alternate;
+:root{
+  --bg1:#14012c;
+  --bg2:#000000;
+  /* Fuerza colores violet y negro para el aro */
+  --ring1: #8b5cf6;
+  --ring2: #000000;
+  --accent1: var(--ring1);
+  --accent2: var(--ring2);
+  --glass: rgba(80, 41, 41, 0.06);
+  --glass-strong: rgba(255,255,255,0.06);
+  --radius:16px;
+  --maxw:980px;
+
+  /* variables de animación para unificar velocidades */
+  --btn-entry-duration: .6s;
+  --btn-float-duration: 6s;
+  --btn-float-delay: 1s;
 }
-.container {
-    background: rgba(24,24,24,0.92);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgb(255, 0, 0);
-    padding: 32px 24px 16px 24px;
-    max-width: 400px;
-    margin: 40px auto;
-    animation: slideUp 1.2s cubic-bezier(.68,-0.55,.27,1.55), floatContainer 8s ease-in-out infinite alternate;
+*{box-sizing:border-box}
+html,body{
+  height:100%;
+  margin:0;
+  font-family:Inter,system-ui,"Segoe UI",Roboto,Arial;
+  color:#e6eef8;
+  background:linear-gradient(120deg,var(--bg1),var(--bg2));
+  -webkit-font-smoothing:antialiased;
 }
-header {
-    text-align: center;
-    margin-bottom: 24px;
-    animation: fadeInText 1.5s ease, floatHeader 10s ease-in-out infinite alternate;
+.page{max-width:var(--maxw);margin:36px auto;padding:20px}
+.hero{display:flex;align-items:center;justify-content:center;padding:36px 20px;position:relative;overflow:visible}
+.hero::before{
+  content:"";
+  position:absolute;
+  inset:-30% -10% auto -10%;
+  height:360px;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(0, 0, 0, 0.12), transparent 15%),
+    radial-gradient(circle at 80% 70%, rgba(0, 0, 0, 0.08), transparent 12%);
+  filter:blur(40px);
+  z-index:0;
+  pointer-events:none;
 }
-.avatar {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 4px solid #000000;
-    margin-bottom: 12px;
-    animation: popIn 1s cubic-bezier(.68,-0.55,.27,1.55), floatAvatar 7s ease-in-out infinite alternate;
+.hero-inner{position:relative;z-index:2;text-align:center;transition:transform .25s ease}
+.avatar-wrap{
+  position:relative;
+  margin:0 auto 14px;
+  width:140px;
+  height:140px;
+  display:inline-block;
+  /* Haz que el contenedor (imagen + aro) flote junto */
+  animation: float 4s ease-in-out infinite;
+  will-change: transform;
 }
-.avatar.anime-border {
-    box-shadow: 0 0 0 8px #3cff00, 0 0 24px 8px rgba(0, 0, 0, 0.467), 0 0 0 16px #00ccff;
-    border: 4px solid #fff;
-    animation: animeGlow 2s infinite alternate, floatAvatar 7s ease-in-out infinite alternate;
+.avatar{
+  width:140px;
+  height:140px;
+  border-radius:50%;
+  object-fit:cover;
+  border:6px solid rgba(255,255,255,0.06);
+  box-shadow:0 12px 32px rgba(0,0,0,0.6);
+  transform-origin:center;
+  /* Quitar animación propia para que siga al contenedor */
+  animation: none;
 }
-header h1 {
-    font-family: 'Luckiest Guy', cursive, Arial, sans-serif;
-    letter-spacing: 2px;
-    font-size: 2.5em;
-    text-shadow: 2px 2px 0 #ff0000, 4px 4px 0 #ff3c00;
-    animation: fadeInText 1.5s ease, floatHeader 10s ease-in-out infinite alternate;
+.avatar-ring{
+  position:absolute;
+  top:-6px;
+  left:-6px;
+  width:152px;
+  height:152px;
+  filter:drop-shadow(0 8px 24px rgba(139,92,246,0.18));
+  /* Mantén la rotación del aro además del movimiento del contenedor */
+  animation: spin 6s linear infinite;
+  pointer-events:none;
+  transform-origin:center;
 }
-.subtitle {
-    font-style: italic;
-    font-size: 1.2em;
-    color: #ffffff;
-    text-shadow: 1px 1px 0 #ff0000;
-    animation: fadeInText 1.5s ease, floatHeader 10s ease-in-out infinite alternate;
-}
-.links {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 24px;
-    animation: fadeInText 1.5s ease, floatLinks 9s ease-in-out infinite alternate;
-}
-.btn {
-    text-decoration: none;
-    padding: 14px;
-    border-radius: 8px;
-    font-weight: bold;
-    text-align: center;
-    transition: background 0.2s, transform 0.2s;
-    font-size: 1.1em;
-    box-shadow: 0 2px 8px rgb(255, 0, 0);
-    animation: fadeInBtn 1.5s ease, floatBtn 6s ease-in-out infinite alternate;
-}
-.btn.tiktok { background: #010101; color: #fff; border: 2px solid #25F4EE; }
-.btn.instagram { background: linear-gradient(90deg,#ff1111,#fa00c48a); color: #fff; border: none; }
-.btn.payhip { background: #3744fc; color: #fff; border: none; }
-.btn.pillar { background: #6e34f5a1; color: #fcfcfc; border: 2px solid #ff0000; }
-.btn:hover { transform: scale(1.05); opacity: 0.9; }
-.about {
-    margin-bottom: 24px;
-    animation: fadeInText 1.5s ease, floatAbout 8s ease-in-out infinite alternate;
-}
-.about h2 {
-    font-family: 'Luckiest Guy', cursive, Arial, sans-serif;
-    color: #ffffff;
-    text-shadow: 1px 1px 0 #0026ff;
-    animation: fadeInText 1.5s ease, floatAbout 8s ease-in-out infinite alternate;
-}
-.about p {
-    font-family: 'Comic Neue', cursive, Arial, sans-serif;
-    font-size: 1.1em;
-    color: #fff;
-    background: rgba(0, 0, 0, 0.07);
-    border-radius: 8px;
-    padding: 12px;
-    box-shadow: 0 2px 8px #ff030333;
-    animation: fadeInText 1.5s ease, floatAbout 8s ease-in-out infinite alternate;
-}
-footer {
-    text-align: center;
-    color: #aaa;
-    font-size: 0.9em;
-    margin-top: 16px;
-    animation: fadeInText 1.5s ease, floatFooter 12s ease-in-out infinite alternate;
-}
-@media (max-width: 500px) {
-    .container { padding: 16px 8px; }
-    .avatar { width: 70px; height: 70px; }
+@keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-8px)}100%{transform:translateY(0)}}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+
+.name{font-family:'Luckiest Guy',cursive;font-size:2.1rem;margin:6px 0 0;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,0.35)}
+.role{margin:6px 0 0;color:#dbeafe;opacity:.9;font-weight:600}
+
+/* LINKS GRID */
+.links-section{margin:28px 0;padding:18px;border-radius:var(--radius);background:linear-gradient(180deg,var(--glass),transparent);backdrop-filter:blur(6px);box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+.section-title{font-weight:800;margin:0 0 12px;font-size:1.1rem;color:#fff;text-transform:uppercase;letter-spacing:1px}
+.links-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.link-card {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  border-radius:12px;
+  color:#fff;
+  text-decoration:none;
+  font-weight:700;
+  box-shadow:0 8px 20px rgba(2,6,23,0.6);
+  transform:translateY(20px);
+  opacity:0;
+  animation:cardIn .6s forwards;
+  transition:transform .18s ease,box-shadow .18s ease;
+  /* capa base de acento + capa específica (si existe) para mezclar */
+  background: linear-gradient(135deg, var(--accent1), var(--accent2));
+  background-blend-mode: overlay;
+  background-size: 100% 100%;
 }
 
-/* Animaciones de entrada */
-@keyframes fadeInBg {
-    from { opacity: 0; filter: blur(8px); }
-    to { opacity: 1; filter: blur(2px); }
+/* combina el degradado base con la paleta propia de cada botón */
+.link-card.tiktok    { background: linear-gradient(135deg,#010101 0%,#020202 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
+.link-card.instagram { background: linear-gradient(135deg,#000000 0%,#ff0000 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
+.link-card.payhip    { background: linear-gradient(135deg,#000000 0%,#503bf3 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
+.link-card.pillar    { background: linear-gradient(135deg,#000000 0%,#ff0080 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
+.link-card.portfolio { background: linear-gradient(135deg,#000000 0%,#c800fa 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
+.link-card.youtube   { background: linear-gradient(135deg,#0097fc 0%,#ff0000 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
+
+.link-card.spotify   { background: linear-gradient(135deg,#000000 0%,#00ff0d 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
+.link-card.wink      { background: linear-gradient(135deg,#000000 0%,#ffffff 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
+.link-card.winkit    { background: linear-gradient(135deg,#000000 0%,#00ffff 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
+
+/* mejora contraste si es necesario */
+.link-card { color: #ffffff; text-shadow: 0 1px 0 rgba(0,0,0,0.25); }
+
+@keyframes cardIn{to{transform:translateY(0);opacity:1}}
+
+/* CONTACT (actualizado: degradados combinados y animaciones) */
+/* ====== Contacto rápido (revertido a estilo simple y funcional) ====== */
+.contact-section{
+  margin-top:18px;
+  padding:18px;
+  border-radius:12px;
+  background: linear-gradient(180deg,var(--glass-strong),transparent);
+  backdrop-filter: blur(6px);
+  text-align:center;
 }
-@keyframes slideUp {
-    from { transform: translateY(60px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-@keyframes popIn {
-    0% { transform: scale(0.7); opacity: 0; }
-    80% { transform: scale(1.1); opacity: 1; }
-    100% { transform: scale(1); }
-}
-@keyframes fadeInBtn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeInText {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+.contact-row{
+  display:flex;
+  gap:14px;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin:12px 0;
 }
 
-/* Animaciones flotantes continuas */
-@keyframes floatBg {
-    from { filter: brightness(0.85) blur(2px); }
-    50% { filter: brightness(1) blur(0px); }
-    to { filter: brightness(0.85) blur(2px); }
+/* Botones de contacto: visual limpio, entrada y sheen ligero */
+.whatsapp, .email, .hire {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px 18px;
+  border-radius:999px;
+  text-decoration:none;
+  font-weight:700;
+  position:relative;
+  overflow:hidden;
+  transform: translateY(6px);
+  opacity: 0;
+  box-shadow: 0 8px 22px rgba(2,6,23,0.18);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+  animation: contactIn var(--btn-entry-duration, .6s) forwards;
 }
-@keyframes floatContainer {
-    from { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-    to { transform: translateY(0); }
+
+/* Paletas */
+.whatsapp { background: linear-gradient(90deg,#25D366,#5EE7A6); color:#071024; }
+.email    { background: linear-gradient(90deg,#000000,#000000); color:#040b1a; }
+.hire     { background: linear-gradient(90deg,#ffb86b,#ff4d6d); color:#071024; }
+
+/* sheen sencillo */
+.whatsapp::before, .email::before, .hire::before {
+  content:"";
+  position:absolute;
+  top:-120%;
+  left:-40%;
+  width:40%;
+  height:340%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.45) 50%, rgba(255,255,255,0) 100%);
+  transform: rotate(25deg) translateX(-120%);
+  transition: transform .8s cubic-bezier(.25,.8,.25,1);
+  pointer-events:none;
+  mix-blend-mode: overlay;
+  opacity:0.9;
 }
-@keyframes floatHeader {
-    from { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
-    to { transform: translateY(0); }
+.whatsapp:hover::before, .email:hover::before, .hire:hover::before {
+  transform: rotate(25deg) translateX(220%);
 }
-@keyframes floatAvatar {
-    from { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-    to { transform: translateY(0); }
+
+/* overlay sutil */
+.whatsapp::after, .email::after, .hire::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
+  opacity:0;
+  transition: opacity .25s ease, transform .25s ease;
+  pointer-events:none;
 }
-@keyframes floatLinks {
-    from { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
-    to { transform: translateY(0); }
+.whatsapp:hover::after, .email:hover::after, .hire:hover::after {
+  opacity:1;
+  transform: translateY(-2px);
 }
+
+/* hover / activo */
+.whatsapp:hover, .email:hover, .hire:hover,
+.whatsapp:focus, .email:focus, .hire:focus {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 18px 44px rgba(2,6,23,0.48);
+  outline: none;
+}
+.whatsapp:active, .email:active, .hire:active {
+  transform: translateY(-2px) scale(.995);
+}
+
+/* animaciones */
+@keyframes contactIn { to { transform: translateY(0); opacity:1; } }
+
+/* pulse opcional solo si la clase .pulse está presente */
+@keyframes pulse {
+  0% { box-shadow: 0 8px 22px rgba(37,211,102,0.12); transform:translateY(0); }
+  50% { box-shadow: 0 20px 44px rgba(37,211,102,0.20); transform:translateY(-6px); }
+  100% { box-shadow: 0 8px 22px rgba(37,211,102,0.12); transform:translateY(0); }
+}
+.whatsapp.pulse { animation: contactIn var(--btn-entry-duration, .6s) forwards, pulse 2.2s ease-in-out 0.6s infinite; }
+
+/* Asegurar visibilidad de los botones Correo/Comprar en la grid */
+.links-grid .link-card.email,
+.links-grid .link-card.hire {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  border-radius:12px;
+  color:#fff;
+  text-decoration:none;
+  font-weight:700;
+  position:relative;
+  overflow:hidden;
+  animation: cardIn var(--btn-entry-duration, .6s) forwards;
+}
+
+/* Restaurar animaciones y sheen para los botones .link-card */
+.link-card {
+  position: relative;
+  overflow: hidden; /* necesario para el sheen */
+  will-change: transform, box-shadow, opacity;
+  /* mantiene el resto de estilos ya definidos */
+}
+
+/* sheen (brillo deslizante) para .link-card */
+.link-card::before {
+  content: "";
+  position: absolute;
+  top: -120%;
+  left: -40%;
+  width: 40%;
+  height: 340%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.45) 50%, rgba(255,255,255,0) 100%);
+  transform: rotate(25deg) translateX(-120%);
+  transition: transform .8s cubic-bezier(.25,.8,.25,1);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* overlay sutil */
+.link-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.03));
+  opacity: 0;
+  transition: opacity .35s ease, transform .35s ease;
+  pointer-events: none;
+}
+
+/* activar sheen y overlay al hover/focus */
+.link-card:hover::before,
+.link-card:focus::before {
+  transform: rotate(25deg) translateX(220%);
+}
+.link-card:hover::after,
+.link-card:focus::after {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+/* hover / foco para levantar el botón */
+.link-card:hover, .link-card:focus {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 20px 48px rgba(2,6,23,0.6);
+}
+
+/* animación flotante periódica (si no está ya aplicada) */
+@media (prefers-reduced-motion: no-preference) {
+  .link-card {
+    animation: cardIn .6s forwards, floatBtn 6s ease-in-out 1s infinite;
+  }
+}
+
+/* define floatBtn si no existe (se usa para todos los botones) */
 @keyframes floatBtn {
-    from { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-    to { transform: translateY(0); }
-}
-@keyframes floatAbout {
-    from { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-    to { transform: translateY(0); }
-}
-@keyframes floatFooter {
-    from { transform: translateY(0); }
-    50% { transform: translateY(-2px); }
-    to { transform: translateY(0); }
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
 }
 
-/* If you need to import fonts, use @import in CSS, not <link> tags */
-@import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Comic+Neue:wght@700&display=swap');
+/* reducir movimiento para usuarios que prefieren menos animación */
+@media (prefers-reduced-motion: reduce) {
+  .whatsapp.pulse, .email, .hire, .link-card { animation: none !important; transition: none !important; }
+}
+
+/* Asegurar mismas animaciones (sheen, overlay, flotación) para Correo y Compra
+   tanto cuando aparecen como .link-card en la grid como en el apartado de contacto */
+.link-card.email, .link-card.hire,
+.contact-row .email, .contact-row .hire {
+  position: relative;
+  overflow: hidden;
+  will-change: transform, box-shadow, opacity;
+}
+
+/* sheen (brillo deslizante) */
+.link-card.email::before, .link-card.hire::before,
+.contact-row .email::before, .contact-row .hire::before {
+  content: "";
+  position: absolute;
+  top: -120%;
+  left: -40%;
+  width: 40%;
+  height: 340%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.45) 50%, rgba(255,255,255,0) 100%);
+  transform: rotate(25deg) translateX(-120%);
+  transition: transform .8s cubic-bezier(.25,.8,.25,1);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* overlay sutil para profundidad */
+.link-card.email::after, .link-card.hire::after,
+.contact-row .email::after, .contact-row .hire::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.03));
+  opacity: 0;
+  transition: opacity .35s ease, transform .35s ease;
+  pointer-events: none;
+}
+
+/* activar sheen y overlay al hover/focus */
+.link-card.email:hover::before, .link-card.hire:hover::before,
+.contact-row .email:hover::before, .contact-row .hire:hover::before,
+.link-card.email:focus::before, .link-card.hire:focus::before,
+.contact-row .email:focus::before, .contact-row .hire:focus::before {
+  transform: rotate(25deg) translateX(220%);
+}
+.link-card.email:hover::after, .link-card.hire:hover::after,
+.contact-row .email:hover::after, .contact-row .hire:hover::after,
+.link-card.email:focus::after, .link-card.hire:focus::after,
+.contact-row .email:focus::after, .contact_row .hire:focus {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+/* levantamiento y sombra al hover/focus */
+.link-card.email:hover, .link-card.hire:hover,
+.contact-row .email:hover, .contact-row .hire:hover,
+.link-card.email:focus, .link-card.hire:focus,
+.contact-row .email:focus, .contact_row .hire:focus {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 20px 48px rgba(2,6,23,0.6);
+}
+
+/* entrada y flotación periódica (respetando prefers-reduced-motion) */
+@media (prefers-reduced-motion: no-preference) {
+  .link-card.email, .link-card.hire {
+    animation: cardIn .6s forwards, floatBtn 6s ease-in-out 1s infinite;
+  }
+  .contact-row .email, .contact_row .hire {
+    animation: contactIn .6s forwards, floatBtn 6s ease-in-out 1.2s infinite;
+  }
+}
+
+/* Unifica animación de WhatsApp con la de los demás botones */
+.whatsapp,
+.contact-row .whatsapp,
+.whatsapp.pulse {
+  /* misma entrada y flotación que .link-card */
+  animation: cardIn var(--btn-entry-duration) forwards, floatBtn var(--btn-float-duration) ease-in-out var(--btn-float-delay) infinite;
+  /* elimina cualquier animación conflictiva heredada */
+  /* si quieres mantener el "pulse" visual, no lo añadas como segunda animación aquí */
+}
+
+/* Asegura que pulse siga funcionando sólo como capa visual si está presente:
+   (opcional) - si prefieres mantener el pulso además del float, descomenta la línea siguiente */
+/* .whatsapp.pulse { animation: cardIn var(--btn-entry-duration) forwards, floatBtn var(--btn-float-duration) ease-in-out var(--btn-float-delay) infinite, pulse 2.2s ease-in-out 0.6s infinite; } */
+
+.footer {
+  margin-top: 18px;
+  text-align: center;
+  display: block;
+  width: 100%;
+  color: #9fb7d8;
+  opacity: .9;
+}
+
+/* Fondo animado: degradado dinámico + blobs flotantes */
+.bg-anim {
+  position: fixed;
+  inset: 0;
+  z-index: 0; /* debajo de todo */
+  pointer-events: none;
+  background: linear-gradient(120deg, var(--accent1, #8b5cf6), rgba(0,0,0,0) 40%, var(--accent2, #000000));
+  background-size: 200% 200%;
+  filter: saturate(1.05) blur(10px);
+  transition: background 400ms linear;
+  animation: gradientShift 10s ease-in-out infinite;
+}
+
+/* blobs decorativos (pseudo-elementos para rendimiento) */
+.bg-anim::before,
+.bg-anim::after {
+  content: "";
+  position: absolute;
+  width: 50vmax;
+  height: 50vmax;
+  top: 10%;
+  left: -10%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.06), rgba(255,255,255,0) 30%),
+              radial-gradient(circle at 70% 70%, rgba(0,0,0,0.12), rgba(0,0,0,0) 35%);
+  transform: translate3d(0,0,0) scale(0.6);
+  opacity: 0.55;
+  filter: blur(36px);
+  animation: blobMove1 14s ease-in-out infinite;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+.bg-anim::after {
+  top: 60%;
+  left: 40%;
+  background: radial-gradient(circle at 40% 40%, rgba(255,255,255,0.04), rgba(255,255,255,0) 30%),
+              radial-gradient(circle at 80% 80%, rgba(0,0,0,0.14), rgba(0,0,0,0) 35%);
+  animation: blobMove2 18s ease-in-out infinite;
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+}
+
+/* keyframes */
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes blobMove1 {
+  0%   { transform: translate3d(0,0,0) scale(0.6); opacity:0.6; }
+  50%  { transform: translate3d(6vw,-4vh,0) scale(0.8); opacity:0.45; }
+  100% { transform: translate3d(0,0,0) scale(0.6); opacity:0.6; }
+}
+@keyframes blobMove2 {
+  0%   { transform: translate3d(0,0,0) scale(0.55); opacity:0.5; }
+  50%  { transform: translate3d(-8vw,6vh,0) scale(0.75); opacity:0.35; }
+  100% { transform: translate3d(0,0,0) scale(0.55); opacity:0.5; }
+}
+
+/* Asegura que el contenido principal quede encima */
+.page { position: relative; z-index: 2; }
+
+/* Respeta preferencia de menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .bg-anim,
+  .bg-anim::before,
+  .bg-anim::after {
+    animation: none;
+    transition: none;
+  }
+  .bg-anim { filter: blur(8px); }
+}
+
+/* Fix: asegurar visibilidad y animación de los botones Correo / Comprar */
+.links-grid .link-card.email,
+.links-grid .link-card.hire,
+.contact-row .email,
+contact_row .hire {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 16px !important;
+  border-radius: 12px !important;
+  color: #ffffff !important; /* evita texto oscuro por conflicto de clases */
+  text-decoration: none !important;
+  font-weight: 700 !important;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.6);
+  transform: translateY(20px);
+  opacity: 0;
+  /* misma animación que los demás botones */
+  animation: cardIn var(--btn-entry-duration, .6s) forwards, floatBtn var(--btn-float-duration, 6s) ease-in-out var(--btn-float-delay, 1s) infinite;
+}
+
+/* Asegura sheen/overlay y hover para estas clases si no se aplicaron */
+.links-grid .link-card.email::before,
+.links-grid .link-card.hire::before,
+.contact-row .email::before,
+contact_row .hire::before {
+  content: "";
+  position: absolute;
+  top: -120%;
+  left: -40%;
+  width: 40%;
+  height: 340%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.45) 50%, rgba(255,255,255,0) 100%);
+  transform: rotate(25deg) translateX(-120%);
+  transition: transform .8s cubic-bezier(.25,.8,.25,1);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+.links-grid .link-card.email::after,
+.links-grid .link-card.hire::after,
+.contact-row .email::after,
+contact_row .hire::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.03));
+  opacity: 0;
+  transition: opacity .35s ease, transform .35s ease;
+  pointer-events: none;
+}
+.links-grid .link-card.email:hover::before,
+.links-grid .link-card.hire:hover::before,
+.contact-row .email:hover::before,
+contact_row .hire:hover::before,
+.links-grid .link-card.email:focus::before,
+.links-grid .link-card.hire:focus::before,
+.contact-row .email:focus::before,
+.contact-row .hire:focus::before {
+  transform: rotate(25deg) translateX(220%);
+}
+.links-grid .link-card.email:hover::after,
+.links-grid .link-card.hire:hover::after,
+.contact-row .email:hover::after,
+contact_row .hire:hover::after,
+.links-grid .link-card.email:focus::after,
+.links-grid .link-card.hire:focus::after,
+.contact-row .email:focus::after,
+.contact-row .hire:focus::after {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+/* Cambia color del texto en botón Email */
+.links-grid .link-card.email,
+.contact-row .email {
+  color: #ffffff !important;
+}
+
+/* Asegurar que el botón Email tenga la misma forma y animaciones que WhatsApp / Comprar */
+.links-grid .link-card.email,
+contact-row .email {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px !important;
+  border-radius: 999px !important; /* misma forma redondeada */
+  text-decoration: none;
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+  color: #071024; /* texto oscuro como en los botones de contacto */
+  box-shadow: 0 8px 22px rgba(2,6,23,0.18);
+  transform: translateY(6px);
+  opacity: 0;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+  animation: contactIn var(--btn-entry-duration, .6s) forwards, floatBtn var(--btn-float-duration, 6s) ease-in-out var(--btn-float-delay, 1s) infinite;
+  background: linear-gradient(90deg,#f3f4f6,#c7d2fe); /* conserva paleta existente */
+}
+
+/* Asegura hover/shine idéntico */
+.links-grid .link-card.email::before,
+.links-grid .link-card.email::after,
+contact_row .email::before,
+contact_row .email::after {
+  /* si ya existen estas pseudo reglas, esta declaración las complementa/asegura */
+  content: "";
+  pointer-events: none;
+}
+
+/* Hover / foco: misma interacción */
+.links-grid .link-card.email:hover,
+.links-grid .link-card.email:focus,
+contact_row .email:hover,
+contact_row .email:focus {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 20px 48px rgba(2,6,23,0.6);
+  filter: brightness(1.03) saturate(1.03);
+  outline: none;
+}
+
+/* Fix: animación consistente y visible para el botón "Compra" (.hire)
+   Asegura sheen, overlay, entrada y flotación igual que los otros botones */
+.hire,
+.contact-row .hire,
+.links-grid .link-card.hire {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+  color: #071024;
+  background-image: linear-gradient(90deg,#ffb86b,#ff4d6d), linear-gradient(135deg,var(--accent1),var(--accent2));
+  background-blend-mode: normal, overlay;
+  background-size: 100% 100%, 200% 200%;
+  background-position: center, 0% 50%;
+  box-shadow: 0 10px 26px rgba(2,6,23,0.18);
+  transform: translateY(6px);
+  opacity: 0;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+  animation: contactIn var(--btn-entry-duration, .6s) forwards, contactGradient var(--btn-float-duration,6s) ease-in-out var(--btn-float-delay,1s) infinite;
+}
+
+/* sheen (brillo deslizante) y overlay para .hire */
+.hire::before,
+.contact-row .hire::before,
+.links-grid .link-card.hire::before {
+  content: "";
+  position: absolute;
+  top: -120%;
+  left: -40%;
+  width: 40%;
+  height: 340%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.45) 50%, rgba(255,255,255,0) 100%);
+  transform: rotate(25deg) translateX(-120%);
+  transition: transform .8s cubic-bezier(.25,.8,.25,1);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.95;
+}
+.hire::after,
+.contact-row .hire::after,
+.links-grid .link-card.hire::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.03));
+  opacity: 0;
+  transition: opacity .35s ease, transform .35s ease;
+  pointer-events: none;
+}
+
+/* activar sheen y overlay al hover / focus */
+.hire:hover::before,
+.hire:focus::before,
+.links-grid .link-card.hire:hover::before,
+.links-grid .link-card.hire:focus::before,
+.contact-row .hire:hover::before,
+.contact-row .hire:focus::before {
+  transform: rotate(25deg) translateX(260%);
+}
+.hire:hover::after,
+.hire:focus::after,
+.links-grid .link-card.hire:hover::after,
+.links-grid .link-card.hire:focus::after,
+.contact-row .hire:hover::after,
+.contact-row .hire:focus::after {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+/* levantamiento y sombra al hover/foco */
+.hire:hover, .hire:focus,
+.links-grid .link-card.hire:hover,
+.contact-row .hire:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 20px 48px rgba(2,6,23,0.6);
+}
+
+/* asegurar entrada y flotación en la variante de grid */
+.links-grid .link-card.hire {
+  animation: cardIn var(--btn-entry-duration, .6s) forwards, floatBtn var(--btn-float-duration,6s) ease-in-out var(--btn-float-delay,1s) infinite;
+}
+
+/* respetar prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .hire { animation: none !important; transition: none !important; }
+}
+
+/* FIX: asegurar animaciones visibles para botones de contacto */
+.contact-row .whatsapp,
+.contact-row .email,
+.contact-row .hire,
+.links-grid .link-card.email,
+links-grid .link-card.hire {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px !important;
+  border-radius: 999px !important;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 22px rgba(2,6,23,0.18);
+  will-change: transform, opacity, box-shadow;
+  /* estado inicial (se animará a visible) */
+  transform: translateY(6px);
+  opacity: 0;
+  /* entrada + flotación (mismas variables que el resto) */
+  animation: contactIn var(--btn-entry-duration, .6s) forwards, floatBtn var(--btn-float-duration, 6s) ease-in-out var(--btn-float-delay, 1s) infinite;
+}
+
+/* Mantener pulse como capa adicional si está presente */
+.contact-row .whatsapp.pulse {
+  animation: contactIn var(--btn-entry-duration, .6s) forwards, floatBtn var(--btn-float-duration, 6s) ease-in-out var(--btn-float-delay, 1s) infinite;
+}
+
+/* Sheen y overlay (asegurar presencia si faltaban) */
+.contact-row .whatsapp::before, .contact_row .whatsapp::before, .contact-row .email::before, .contact_row .email::before, .contact-row .hire::before, .contact_row .hire::before,
+.links-grid .link-card.email::before, .links-grid .link-card.hire::before {
+  content: "";
+  position: absolute;
+  top: -120%;
+  left: -40%;
+  width: 40%;
+  height: 340%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.45) 50%, rgba(255,255,255,0) 100%);
+  transform: rotate(25deg) translateX(-120%);
+  transition: transform .8s cubic-bezier(.25,.8,.25,1);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+.contact-row .whatsapp::after, .contact_row .whatsapp::after, .contact-row .email::after, .contact_row .email::after, .contact-row .hire::after, .contact_row .hire::after,
+.links-grid .link-card.email::after, .links-grid .link-card.hire::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
+  opacity: 0;
+  transition: opacity .35s ease, transform .35s ease;
+  pointer-events: none;
+}
+
+/* sheen unificado para todos los botones (grid + contacto) */
+.link-card,
+.links-grid .link-card,
+.contact-row .whatsapp,
+.contact-row .email,
+.contact-row .hire,
+.whatsapp,
+.email,
+.hire {
+  position: relative !important;
+  overflow: hidden !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Pseudo-elemento de destello (sheen) - ahora cubre todo el botón */
+.link-card::before,
+.links-grid .link-card::before,
+.whatsapp::before,
+.email::before,
+.hire::before,
+.contact-row .whatsapp::before,
+.contact-row .email::before,
+.contact-row .hire::before,
+.contact_row .whatsapp::before,
+.contact_row .email::before,
+.contact_row .hire::before {
+  content: "";
+  position: absolute;
+  /* ancho grande para cubrir todo el botón al rotar/desplazar */
+  width: 220%;
+  height: 220%;
+  top: -60%;
+  left: -60%;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.85) 48%,
+    rgba(255,255,255,0.10) 62%,
+    rgba(255,255,255,0) 100%);
+  /* start bien fuera a la izquierda, rotado para efecto diagonal */
+  transform: rotate(25deg) translateX(-200%);
+  transition: transform 0.9s cubic-bezier(.2,.9,.3,1), opacity .35s ease;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0;
+  z-index: 2;
+}
+
+/* Animación de destello periódica actualizada para mover el bloque completo */
+@keyframes sheenLoop {
+  0%   { transform: rotate(25deg) translateX(-200%); opacity: 0; }
+  12%  { opacity: 0.95; }
+  45%  { transform: rotate(25deg) translateX(-20%); opacity: 0.7; }
+  75%  { transform: rotate(25deg) translateX(80%); opacity: 0.35; }
+  100% { transform: rotate(25deg) translateX(260%); opacity: 0; }
+}
+
+/* Aplicar destello periódico a todos los pseudo-elementos de los botones */
+.link-card::before,
+.links-grid .link-card.email::before,
+.links-grid .link-card.hire::before,
+.whatsapp::before,
+.email::before,
+.hire::before,
+.contact-row .whatsapp::before,
+.contact-row .email::before,
+.contact-row .hire::before {
+  animation: sheenLoop 4.2s ease-in-out 1s infinite;
+  will-change: transform, opacity;
+}
+
+/* Asegurar que el texto esté por encima del destello */
+.link-card > *, .links-grid .link-card > *, .contact-row a > * {
+  position: relative;
+  z-index: 3;
+}
+
+/* Opción: efecto de destello automático de una sola vez (añadir clase .auto-sheen en JS) */
+@keyframes sheenOnce {
+  0%   { transform: rotate(25deg) translateX(-140%); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: rotate(25deg) translateX(260%); opacity: 0; }
+}
+.link-card.auto-sheen::before,
+.whatsapp.auto-sheen::before,
+.email.auto-sheen::before,
+.hire.auto-sheen::before {
+  animation: sheenOnce 1s ease 0.35s 1 both;
+}

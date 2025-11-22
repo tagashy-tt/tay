@@ -112,7 +112,7 @@ html,body{
 .link-card.youtube   { background: linear-gradient(135deg,#0097fc 0%,#ff0000 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
 
 .link-card.spotify   { background: linear-gradient(135deg,#000000 0%,#00ff0d 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
-.link-card.wink      { background: linear-gradient(135deg,#000000 0%,#ffffff 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
+.link-card.paypal      { background: linear-gradient(135deg,#000000 0%,#ffffff 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
 .link-card.winkit    { background: linear-gradient(135deg,#000000 0%,#00ffff 60%), linear-gradient(135deg,var(--accent1),var(--accent2)); }
 
 /* mejora contraste si es necesario */
@@ -823,3 +823,4 @@ links-grid .link-card.hire {
 .hire.auto-sheen::before {
   animation: sheenOnce 1s ease 0.35s 1 both;
 }
+

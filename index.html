@@ -7,19 +7,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Luckiest+Guy&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <!-- VIDEO DE FONDO -->
-  <video id="bgVideo" class="bg-video" autoplay muted loop playsinline>
-    <source src="https://www.tiktok.com/@_tagashy.tt/video/7595694795700391224" type="video/mp4">
-  </video>
-
-  <!-- BOTÓN CONTROL DE REPRODUCCIÓN -->
-  <button id="playPauseBtn" class="video-control" aria-label="Reproducir/Pausar video">
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <path id="playIcon" d="M8 5v14l11-7z"/>
-      <path id="pauseIcon" style="display:none;" d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-    </svg>
-  </button>
 
   <!-- ANIMACIÓN DE FONDO (insertar justo al inicio del body) -->
   <div class="bg-anim" aria-hidden="true"></div>
@@ -156,46 +143,17 @@
         root.style.setProperty('--accent2', rgbToCss(secondary));
       }
 
-      if (img.complete && img.naturalWidth) {
-        computeColors();
-      } else {
-        img.addEventListener('load', computeColors);
-        img.addEventListener('error', () => { /* fallback: deja vars por defecto */ });
-      }
-    })();
+            if (img.complete && img.naturalWidth) {
+              computeColors();
+            } else {
+              img.addEventListener('load', computeColors);
+              img.addEventListener('error', () => { /* fallback: deja vars por defecto */ });
+            }
+          })();
+        </script>
+      </body>
+      </html>
 
-    // Control de reproducción del video de fondo
-    (function videoControl() {
-      const video = document.getElementById('bgVideo');
-      const btn = document.getElementById('playPauseBtn');
-      const playIcon = document.getElementById('playIcon');
-      const pauseIcon = document.getElementById('pauseIcon');
-
-      if (!video || !btn) return;
-
-      function togglePlayPause() {
-        if (video.paused) {
-          video.play();
-          playIcon.style.display = 'none';
-          pauseIcon.style.display = 'block';
-        } else {
-          video.pause();
-          playIcon.style.display = 'block';
-          pauseIcon.style.display = 'none';
-        }
-      }
-
-      btn.addEventListener('click', togglePlayPause);
-
-      // Inicia en pausa por defecto
-      video.pause();
-      playIcon.style.display = 'block';
-      pauseIcon.style.display = 'none';
-    })();
-  
-  </script>
-</body>
-</html>
 
 
 

@@ -37,14 +37,6 @@
         <!-- Sección de actividad personalizada -->
         <div class="activity-section">
           <div class="activity-status">
-            <div class="led-indicators">
-              <div class="led led1"></div>
-              <div class="led led2"></div>
-              <div class="led led3"></div>
-              <div class="led led4"></div>
-              <div class="led led5"></div>
-              <div class="led led6"></div>
-            </div>
             <span class="status-text">Cargando...</span>
           </div>
           <div class="activity-game">
@@ -191,68 +183,29 @@
             if (data.success) {
                 const user = data.data;
 
-                // Actualizar indicadores LED
-                const statusIndicator = document.querySelector('.status-indicator');
-                statusIndicator.classList.remove('online', 'idle', 'dnd', 'invisible');
-
-                let statusClass = '';
-                let statusText = '';
-                switch(user.discord_status) {
-                    case 'online':
-                        statusClass = 'online';
-                        statusText = 'Conectado';
-                        break;
-                    case 'idle':
-                        statusClass = 'idle';
-                        statusText = 'Inactivo';
-                        break;
-                    case 'dnd':
-                        statusClass = 'dnd';
-                        statusText = 'No molestar';
-                        break;
-                    case 'invisible':
-                    case 'offline':
-                        statusClass = 'invisible';
-                        statusText = 'Desconectado';
-                        break;
-                }
-
-                statusIndicator.classList.add(statusClass);
-
                 // Actualizar texto de status
                 const statusTextEl = document.querySelector('.status-text');
                 statusTextEl.textContent = statusText;
 
-                // Actualizar actividad
-                const activityImg = document.querySelector('.activity-image');
-                const statusActivity = document.querySelector('.status-activity');
-                if (user.activities && user.activities.length > 0) {
-                    const activity = user.activities[0];
-                    if (activity.type === 0) { // Playing
-                        statusActivity.textContent = `Jugando ${activity.name}`;
-                    } else if (activity.type === 2) { // Listening
-                        statusActivity.textContent = `Escuchando ${activity.name}`;
-                    } else if (activity.type === 3) { // Watching
-                        statusActivity.textContent = `Viendo ${activity.name}`;
+                // Actualizar actividad de juego
+                const gameIcon = document.querySelector('.game-icon');
+                const gameText = document.querySelector('.game-text');
+                const activities = user.activities.filter(activity => activity.type === 0); // Type 0 es Playing
+                if (activities.length > 0) {
+                    const game = activities[0];
+                    gameText.textContent = `Jugando ${game.name}`;
+                    if (game.assets && game.assets.large_image) {
+                        const imageUrl = game.assets.large_image.startsWith('mp:external/')
+                            ? `https://media.discordapp.net/external/${game.assets.large_image.split('/').slice(1).join('/')}`
+                            : `https://cdn.discordapp.com/app-assets/${game.application_id}/${game.assets.large_image}.png`;
+                        gameIcon.src = imageUrl;
+                        gameIcon.style.display = 'block';
                     } else {
-                        statusActivity.textContent = activity.name;
-                    }
-                    // Mostrar imagen de la actividad
-                    if (activity.assets && activity.assets.large_image) {
-                        let imageUrl = activity.assets.large_image;
-                        if (imageUrl.startsWith('mp:external/')) {
-                            imageUrl = `https://media.discordapp.net/external/${imageUrl.split('/').slice(1).join('/')}`;
-                        } else if (!imageUrl.startsWith('http')) {
-                            imageUrl = `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`;
-                        }
-                        activityImg.src = imageUrl;
-                        activityImg.style.display = 'block';
-                    } else {
-                        activityImg.style.display = 'none';
+                        gameIcon.style.display = 'none';
                     }
                 } else {
-                    statusActivity.textContent = '';
-                    activityImg.style.display = 'none';
+                    gameText.textContent = '';
+                    gameIcon.style.display = 'none';
                 }
             }
         } catch (error) {

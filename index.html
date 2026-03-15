@@ -62,14 +62,6 @@
         </div>
     </div>
 
-    <!-- Opciones para cambiar el estado (para demostración) -->
-    <div class="status-controls">
-        <button onclick="setStatus('online')">Online</button>
-        <button onclick="setStatus('idle')">Inactivo</button>
-        <button onclick="setStatus('dnd')">No molestar</button>
-        <button onclick="setStatus('playing')">Jugando</button>
-    </div>
-
     <section class="contact-section">
       <h2 class="section-title">Contacto rápido</h2>
       <div class="contact-row">
@@ -169,38 +161,6 @@
         img.addEventListener('error', () => { /* fallback: deja vars por defecto */ });
       }
     })();
-
-    function setStatus(status) {
-        const indicator = document.querySelector('.status-indicator');
-        const statusLabel = document.querySelector('.status-label');
-        const statusActivity = document.querySelector('.status-activity');
-        
-        // Remover todas las clases de estado
-        indicator.classList.remove('online', 'idle', 'dnd', 'invisible');
-        
-        switch(status) {
-            case 'online':
-                indicator.classList.add('online');
-                statusLabel.textContent = 'Conectado';
-                statusActivity.textContent = '';
-                break;
-            case 'idle':
-                indicator.classList.add('idle');
-                statusLabel.textContent = 'Inactivo';
-                statusActivity.textContent = '';
-                break;
-            case 'dnd':
-                indicator.classList.add('dnd');
-                statusLabel.textContent = 'No molestar';
-                statusActivity.textContent = '';
-                break;
-            case 'playing':
-                indicator.classList.add('online');
-                statusLabel.textContent = 'Conectado';
-                statusActivity.textContent = 'Jugando a un juego';
-                break;
-        }
-    }
 
     // Función para actualizar el status de Discord real
     async function updateDiscordStatus() {

@@ -20,6 +20,16 @@
             <img id="profileImg" class="avatar" src="https://i.pinimg.com/1200x/51/6a/92/516a92b3c4cf5782ca2aac7ac12581f6.jpg" alt="_tagashy">
           </a>
 
+          <!-- Indicadores LED alrededor del avatar -->
+          <div class="led-indicators">
+            <div class="led led1"></div>
+            <div class="led led2"></div>
+            <div class="led led3"></div>
+            <div class="led led4"></div>
+            <div class="led led5"></div>
+            <div class="led led6"></div>
+          </div>
+
           <!-- SVG con stops que usan variables CSS (se actualizarán con JS) -->
           <svg class="avatar-ring" viewBox="0 0 120 120" aria-hidden="true">
             <defs>
@@ -33,6 +43,17 @@
         </div>
         <h1 class="name">tagashy</h1>
         <p class="role">Creador digital • Proyectos • Productos</p>
+
+        <!-- Sección de actividad personalizada -->
+        <div class="activity-section">
+          <div class="activity-status">
+            <span class="status-text">Cargando...</span>
+          </div>
+          <div class="activity-game">
+            <img class="game-icon" src="" alt="" style="display: none;">
+            <span class="game-text"></span>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -50,17 +71,6 @@
         <a class="link-card discord" href="https://discord.gg/95Wnu5yhs6" target="_blank" rel="noopener">TaoSqd</a>
     </div>
     </section>
-
-    <div class="discord-card">
-        <div class="avatar-container">
-            <img src="https://i.pinimg.com/1200x/51/6a/92/516a92b3c4cf5782ca2aac7ac12581f6.jpg" alt="Avatar de Discord" class="avatar">
-            <div class="status-indicator online"></div>
-        </div>
-        <div class="status-text">
-            <span class="status-label">Conectado</span>
-            <span class="status-activity">Jugando Minecraft</span>
-        </div>
-    </div>
 
     <section class="contact-section">
       <h2 class="section-title">Contacto rápido</h2>
@@ -164,62 +174,75 @@
 
     // Función para actualizar el status de Discord real
     async function updateDiscordStatus() {
-        const userId = '801310223335424001';
+        const userId = '801310223335424001'; // Reemplaza con tu Discord ID real
         try {
             const response = await fetch(`https://api.lanyard.rest/v1/users/${userId}`);
             const data = await response.json();
             if (data.success) {
                 const user = data.data;
-                const indicator = document.querySelector('.status-indicator');
-                const statusLabel = document.querySelector('.status-label');
-                const statusActivity = document.querySelector('.status-activity');
 
-                // Remover clases anteriores
-                indicator.classList.remove('online', 'idle', 'dnd', 'invisible');
+                // Actualizar indicadores LED
+                const leds = document.querySelectorAll('.led');
+                leds.forEach(led => led.classList.remove('online', 'idle', 'dnd', 'invisible'));
 
-                // Actualizar status
+                let statusClass = '';
+                let statusText = '';
                 switch(user.discord_status) {
                     case 'online':
-                        indicator.classList.add('online');
-                        statusLabel.textContent = 'Conectado';
+                        statusClass = 'online';
+                        statusText = 'Conectado';
                         break;
                     case 'idle':
-                        indicator.classList.add('idle');
-                        statusLabel.textContent = 'Inactivo';
+                        statusClass = 'idle';
+                        statusText = 'Inactivo';
                         break;
                     case 'dnd':
-                        indicator.classList.add('dnd');
-                        statusLabel.textContent = 'No molestar';
+                        statusClass = 'dnd';
+                        statusText = 'No molestar';
                         break;
                     case 'invisible':
                     case 'offline':
-                        indicator.classList.add('invisible');
-                        statusLabel.textContent = 'Desconectado';
+                        statusClass = 'invisible';
+                        statusText = 'Desconectado';
                         break;
                 }
 
-                // Actualizar actividad
-                if (user.activities && user.activities.length > 0) {
-                    const activity = user.activities[0];
-                    if (activity.type === 0) { // Playing
-                        statusActivity.textContent = `Jugando ${activity.name}`;
-                    } else if (activity.type === 2) { // Listening
-                        statusActivity.textContent = `Escuchando ${activity.name}`;
-                    } else if (activity.type === 3) { // Watching
-                        statusActivity.textContent = `Viendo ${activity.name}`;
+                leds.forEach(led => led.classList.add(statusClass));
+
+                // Actualizar texto de status
+                const statusTextEl = document.querySelector('.status-text');
+                statusTextEl.textContent = statusText;
+
+                // Actualizar actividad de juego
+                const gameIcon = document.querySelector('.game-icon');
+                const gameText = document.querySelector('.game-text');
+                const activities = user.activities.filter(activity => activity.type === 0); // Type 0 es Playing
+                if (activities.length > 0) {
+                    const game = activities[0];
+                    gameText.textContent = `Jugando ${game.name}`;
+                    if (game.assets && game.assets.large_image) {
+                        const imageUrl = game.assets.large_image.startsWith('mp:external/')
+                            ? `https://media.discordapp.net/external/${game.assets.large_image.split('/').slice(1).join('/')}`
+                            : `https://cdn.discordapp.com/app-assets/${game.application_id}/${game.assets.large_image}.png`;
+                        gameIcon.src = imageUrl;
+                        gameIcon.style.display = 'block';
                     } else {
-                        statusActivity.textContent = activity.name;
+                        gameIcon.style.display = 'none';
                     }
                 } else {
-                    statusActivity.textContent = '';
+                    gameText.textContent = '';
+                    gameIcon.style.display = 'none';
                 }
             }
         } catch (error) {
-            console.error('Error al obtener el status de Discord:', error);
+            console.error('Error fetching Discord status:', error);
+            // Fallback
+            const statusTextEl = document.querySelector('.status-text');
+            statusTextEl.textContent = 'Error al cargar status';
         }
     }
 
-    // Actualizar status al cargar la página
+    // Llamar a la función al cargar la página
     updateDiscordStatus();
 
     // Actualizar cada 30 segundos

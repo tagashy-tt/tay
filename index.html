@@ -201,6 +201,75 @@
                 break;
         }
     }
+
+    // Función para actualizar el status de Discord real
+    async function updateDiscordStatus() {
+        const userId = '801310223335424001';
+        try {
+            const response = await fetch(`https://api.lanyard.rest/v1/users/${userId}`);
+            const data = await response.json();
+            if (data.success) {
+                const user = data.data;
+                const indicator = document.querySelector('.status-indicator');
+                const statusLabel = document.querySelector('.status-label');
+                const statusActivity = document.querySelector('.status-activity');
+                const avatarImg = document.querySelector('.discord-card .avatar');
+
+                // Actualizar avatar
+                if (user.discord_user.avatar) {
+                    avatarImg.src = `https://cdn.discordapp.com/avatars/${userId}/${user.discord_user.avatar}.png`;
+                }
+
+                // Remover clases anteriores
+                indicator.classList.remove('online', 'idle', 'dnd', 'invisible');
+
+                // Actualizar status
+                switch(user.discord_status) {
+                    case 'online':
+                        indicator.classList.add('online');
+                        statusLabel.textContent = 'Conectado';
+                        break;
+                    case 'idle':
+                        indicator.classList.add('idle');
+                        statusLabel.textContent = 'Inactivo';
+                        break;
+                    case 'dnd':
+                        indicator.classList.add('dnd');
+                        statusLabel.textContent = 'No molestar';
+                        break;
+                    case 'invisible':
+                    case 'offline':
+                        indicator.classList.add('invisible');
+                        statusLabel.textContent = 'Desconectado';
+                        break;
+                }
+
+                // Actualizar actividad
+                if (user.activities && user.activities.length > 0) {
+                    const activity = user.activities[0];
+                    if (activity.type === 0) { // Playing
+                        statusActivity.textContent = `Jugando ${activity.name}`;
+                    } else if (activity.type === 2) { // Listening
+                        statusActivity.textContent = `Escuchando ${activity.name}`;
+                    } else if (activity.type === 3) { // Watching
+                        statusActivity.textContent = `Viendo ${activity.name}`;
+                    } else {
+                        statusActivity.textContent = activity.name;
+                    }
+                } else {
+                    statusActivity.textContent = '';
+                }
+            }
+        } catch (error) {
+            console.error('Error al obtener el status de Discord:', error);
+        }
+    }
+
+    // Actualizar status al cargar la página
+    updateDiscordStatus();
+
+    // Actualizar cada 30 segundos
+    setInterval(updateDiscordStatus, 30000);
   </script>
 </body>
 </html>

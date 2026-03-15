@@ -94,37 +94,6 @@ html,body{
 @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-8px)}100%{transform:translateY(0)}}
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 
-.led-indicators {
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  width: 160px;
-  height: 160px;
-  pointer-events: none;
-}
-
-.led {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #666;
-  box-shadow: 0 0 4px rgba(0,0,0,0.5);
-  opacity: 0.7;
-}
-
-.led.online { background-color: #43b581; box-shadow: 0 0 8px #43b581; }
-.led.idle { background-color: #faa61a; box-shadow: 0 0 8px #faa61a; }
-.led.dnd { background-color: #f04747; box-shadow: 0 0 8px #f04747; }
-.led.invisible { background-color: #747f8d; box-shadow: 0 0 8px #747f8d; }
-
-.led1 { top: 0; left: 50%; transform: translateX(-50%); }
-.led2 { top: 25%; right: -4px; }
-.led3 { bottom: 25%; right: -4px; }
-.led4 { bottom: 0; left: 50%; transform: translateX(-50%); }
-.led5 { bottom: 25%; left: -4px; }
-.led6 { top: 25%; left: -4px; }
-
 .activity-status {
   display: flex;
   align-items: center;

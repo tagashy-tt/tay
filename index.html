@@ -178,10 +178,32 @@
     async function updateDiscordStatus() {
         const userId = '801310223335424001'; // Reemplaza con tu Discord ID real
         try {
+            console.log('Fetching Discord status...');
             const response = await fetch(`https://api.lanyard.rest/v1/users/${userId}`);
+            console.log('Response:', response);
             const data = await response.json();
+            console.log('Data:', data);
             if (data.success) {
                 const user = data.data;
+
+                let statusText = '';
+                switch(user.discord_status) {
+                    case 'online':
+                        statusText = 'Conectado';
+                        break;
+                    case 'idle':
+                        statusText = 'Inactivo';
+                        break;
+                    case 'dnd':
+                        statusText = 'No molestar';
+                        break;
+                    case 'invisible':
+                    case 'offline':
+                        statusText = 'Desconectado';
+                        break;
+                    default:
+                        statusText = 'Desconocido';
+                }
 
                 // Actualizar texto de status
                 const statusTextEl = document.querySelector('.status-text');
@@ -219,8 +241,8 @@
     // Llamar a la función al cargar la página
     updateDiscordStatus();
 
-    // Actualizar cada 30 segundos
-    setInterval(updateDiscordStatus, 30000);
+    // Actualizar cada 10 segundos
+    setInterval(updateDiscordStatus, 10000);
   </script>
 </body>
 </html>

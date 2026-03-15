@@ -135,35 +135,40 @@
         const sy = Math.max(0, Math.floor((ih - sh)/2));
         ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
 
-        const imd = ctx.getImageData(0,0,w,h);
-        const data = imd.data;
+        try {
+          const imd = ctx.getImageData(0,0,w,h);
+          const data = imd.data;
 
-        // color principal: promedio de todo
-        const main = averageColor(data, 0, data.length, 4);
+          // color principal: promedio de todo
+          const main = averageColor(data, 0, data.length, 4);
 
-        // color secundario: promedio de borde (para contraste)
-        const borderPixels = [];
-        // top rows + bottom rows + left/right columns
-        for (let y=0; y<h; y++) {
-          for (let x=0; x<w; x++) {
-            if (y < Math.floor(h*0.22) || y >= Math.floor(h*0.78) || x < Math.floor(w*0.12) || x >= Math.floor(w*0.88)) {
-              const idx = (y*w + x)*4;
-              borderPixels.push(data[idx], data[idx+1], data[idx+2]);
+          // color secundario: promedio de borde (para contraste)
+          const borderPixels = [];
+          // top rows + bottom rows + left/right columns
+          for (let y=0; y<h; y++) {
+            for (let x=0; x<w; x++) {
+              if (y < Math.floor(h*0.22) || y >= Math.floor(h*0.78) || x < Math.floor(w*0.12) || x >= Math.floor(w*0.88)) {
+                const idx = (y*w + x)*4;
+                borderPixels.push(data[idx], data[idx+1], data[idx+2]);
+              }
             }
           }
-        }
-        // flatten border data to simulate data array for averageColor
-        // averageColor expects [r,g,b,r,g,b,...] but with 4-step stride; reuse logic:
-        const borderData = new Uint8ClampedArray(borderPixels.length);
-        borderData.set(borderPixels);
-        const secondary = averageColor(borderData, 0, borderData.length, 3); // stride 3 here
+          // flatten border data to simulate data array for averageColor
+          // averageColor expects [r,g,b,r,g,b,...] but with 4-step stride; reuse logic:
+          const borderData = new Uint8ClampedArray(borderPixels.length);
+          borderData.set(borderPixels);
+          const secondary = averageColor(borderData, 0, borderData.length, 3); // stride 3 here
 
-        // aplica colores como variables CSS
-        const root = document.documentElement;
-        root.style.setProperty('--ring1', rgbToCss(main));
-        root.style.setProperty('--ring2', rgbToCss(secondary));
-        root.style.setProperty('--accent1', rgbToCss(main));
-        root.style.setProperty('--accent2', rgbToCss(secondary));
+          // aplica colores como variables CSS
+          const root = document.documentElement;
+          root.style.setProperty('--ring1', rgbToCss(main));
+          root.style.setProperty('--ring2', rgbToCss(secondary));
+          root.style.setProperty('--accent1', rgbToCss(main));
+          root.style.setProperty('--accent2', rgbToCss(secondary));
+        } catch (error) {
+          console.warn('No se pudieron extraer colores de la imagen debido a restricciones CORS. Usando colores por defecto.');
+          // Deja los colores por defecto definidos en CSS
+        }
       }
 
       if (img.complete && img.naturalWidth) {

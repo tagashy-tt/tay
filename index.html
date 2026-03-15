@@ -53,7 +53,7 @@
 
     <div class="discord-card">
         <div class="avatar-container">
-            <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Avatar de Discord" class="avatar">
+            <img src="https://i.pinimg.com/1200x/51/6a/92/516a92b3c4cf5782ca2aac7ac12581f6.jpg" alt="Avatar de Discord" class="avatar">
             <div class="status-indicator online"></div>
         </div>
         <div class="status-text">
@@ -213,12 +213,6 @@
                 const indicator = document.querySelector('.status-indicator');
                 const statusLabel = document.querySelector('.status-label');
                 const statusActivity = document.querySelector('.status-activity');
-                const avatarImg = document.querySelector('.discord-card .avatar');
-
-                // Actualizar avatar
-                if (user.discord_user.avatar) {
-                    avatarImg.src = `https://cdn.discordapp.com/avatars/${userId}/${user.discord_user.avatar}.png`;
-                }
 
                 // Remover clases anteriores
                 indicator.classList.remove('online', 'idle', 'dnd', 'invisible');

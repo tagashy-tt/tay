@@ -51,6 +51,25 @@
     </div>
     </section>
 
+    <div class="discord-card">
+        <div class="avatar-container">
+            <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Avatar de Discord" class="avatar">
+            <div class="status-indicator online"></div>
+        </div>
+        <div class="status-text">
+            <span class="status-label">Conectado</span>
+            <span class="status-activity">Jugando Minecraft</span>
+        </div>
+    </div>
+
+    <!-- Opciones para cambiar el estado (para demostración) -->
+    <div class="status-controls">
+        <button onclick="setStatus('online')">Online</button>
+        <button onclick="setStatus('idle')">Inactivo</button>
+        <button onclick="setStatus('dnd')">No molestar</button>
+        <button onclick="setStatus('playing')">Jugando</button>
+    </div>
+
     <section class="contact-section">
       <h2 class="section-title">Contacto rápido</h2>
       <div class="contact-row">
@@ -143,30 +162,45 @@
         root.style.setProperty('--accent2', rgbToCss(secondary));
       }
 
-            if (img.complete && img.naturalWidth) {
-              computeColors();
-            } else {
-              img.addEventListener('load', computeColors);
-              img.addEventListener('error', () => { /* fallback: deja vars por defecto */ });
-            }
-          })();
-        </script>
-      </body>
-      </html>
+      if (img.complete && img.naturalWidth) {
+        computeColors();
+      } else {
+        img.addEventListener('load', computeColors);
+        img.addEventListener('error', () => { /* fallback: deja vars por defecto */ });
+      }
+    })();
 
-
-<<<<<<< HEAD
-=======
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> 622542cf3225fc2f6e438785f395e7d939fcd548
+    function setStatus(status) {
+        const indicator = document.querySelector('.status-indicator');
+        const statusLabel = document.querySelector('.status-label');
+        const statusActivity = document.querySelector('.status-activity');
+        
+        // Remover todas las clases de estado
+        indicator.classList.remove('online', 'idle', 'dnd', 'invisible');
+        
+        switch(status) {
+            case 'online':
+                indicator.classList.add('online');
+                statusLabel.textContent = 'Conectado';
+                statusActivity.textContent = '';
+                break;
+            case 'idle':
+                indicator.classList.add('idle');
+                statusLabel.textContent = 'Inactivo';
+                statusActivity.textContent = '';
+                break;
+            case 'dnd':
+                indicator.classList.add('dnd');
+                statusLabel.textContent = 'No molestar';
+                statusActivity.textContent = '';
+                break;
+            case 'playing':
+                indicator.classList.add('online');
+                statusLabel.textContent = 'Conectado';
+                statusActivity.textContent = 'Jugando a un juego';
+                break;
+        }
+    }
+  </script>
+</body>
+</html>

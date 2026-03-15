@@ -20,16 +20,6 @@
             <img id="profileImg" class="avatar" src="https://i.pinimg.com/1200x/51/6a/92/516a92b3c4cf5782ca2aac7ac12581f6.jpg" alt="_tagashy">
           </a>
 
-          <!-- Indicadores LED alrededor del avatar -->
-          <div class="led-indicators">
-            <div class="led led1"></div>
-            <div class="led led2"></div>
-            <div class="led led3"></div>
-            <div class="led led4"></div>
-            <div class="led led5"></div>
-            <div class="led led6"></div>
-          </div>
-
           <!-- SVG con stops que usan variables CSS (se actualizarán con JS) -->
           <svg class="avatar-ring" viewBox="0 0 120 120" aria-hidden="true">
             <defs>
@@ -47,6 +37,14 @@
         <!-- Sección de actividad personalizada -->
         <div class="activity-section">
           <div class="activity-status">
+            <div class="led-indicators">
+              <div class="led led1"></div>
+              <div class="led led2"></div>
+              <div class="led led3"></div>
+              <div class="led led4"></div>
+              <div class="led led5"></div>
+              <div class="led led6"></div>
+            </div>
             <span class="status-text">Cargando...</span>
           </div>
           <div class="activity-game">
@@ -71,6 +69,18 @@
         <a class="link-card discord" href="https://discord.gg/95Wnu5yhs6" target="_blank" rel="noopener">TaoSqd</a>
     </div>
     </section>
+
+    <div class="discord-card">
+        <div class="avatar-container">
+            <img src="https://i.pinimg.com/1200x/51/6a/92/516a92b3c4cf5782ca2aac7ac12581f6.jpg" alt="Avatar de Discord" class="avatar">
+            <div class="status-indicator online"></div>
+        </div>
+        <div class="status-text">Conectado</div>
+        <div class="activity">
+            <img class="activity-image" src="" alt="" style="display: none;">
+            <span class="status-activity"></span>
+        </div>
+    </div>
 
     <section class="contact-section">
       <h2 class="section-title">Contacto rápido</h2>
@@ -182,8 +192,8 @@
                 const user = data.data;
 
                 // Actualizar indicadores LED
-                const leds = document.querySelectorAll('.led');
-                leds.forEach(led => led.classList.remove('online', 'idle', 'dnd', 'invisible'));
+                const statusIndicator = document.querySelector('.status-indicator');
+                statusIndicator.classList.remove('online', 'idle', 'dnd', 'invisible');
 
                 let statusClass = '';
                 let statusText = '';
@@ -207,31 +217,42 @@
                         break;
                 }
 
-                leds.forEach(led => led.classList.add(statusClass));
+                statusIndicator.classList.add(statusClass);
 
                 // Actualizar texto de status
                 const statusTextEl = document.querySelector('.status-text');
                 statusTextEl.textContent = statusText;
 
-                // Actualizar actividad de juego
-                const gameIcon = document.querySelector('.game-icon');
-                const gameText = document.querySelector('.game-text');
-                const activities = user.activities.filter(activity => activity.type === 0); // Type 0 es Playing
-                if (activities.length > 0) {
-                    const game = activities[0];
-                    gameText.textContent = `Jugando ${game.name}`;
-                    if (game.assets && game.assets.large_image) {
-                        const imageUrl = game.assets.large_image.startsWith('mp:external/')
-                            ? `https://media.discordapp.net/external/${game.assets.large_image.split('/').slice(1).join('/')}`
-                            : `https://cdn.discordapp.com/app-assets/${game.application_id}/${game.assets.large_image}.png`;
-                        gameIcon.src = imageUrl;
-                        gameIcon.style.display = 'block';
+                // Actualizar actividad
+                const activityImg = document.querySelector('.activity-image');
+                const statusActivity = document.querySelector('.status-activity');
+                if (user.activities && user.activities.length > 0) {
+                    const activity = user.activities[0];
+                    if (activity.type === 0) { // Playing
+                        statusActivity.textContent = `Jugando ${activity.name}`;
+                    } else if (activity.type === 2) { // Listening
+                        statusActivity.textContent = `Escuchando ${activity.name}`;
+                    } else if (activity.type === 3) { // Watching
+                        statusActivity.textContent = `Viendo ${activity.name}`;
                     } else {
-                        gameIcon.style.display = 'none';
+                        statusActivity.textContent = activity.name;
+                    }
+                    // Mostrar imagen de la actividad
+                    if (activity.assets && activity.assets.large_image) {
+                        let imageUrl = activity.assets.large_image;
+                        if (imageUrl.startsWith('mp:external/')) {
+                            imageUrl = `https://media.discordapp.net/external/${imageUrl.split('/').slice(1).join('/')}`;
+                        } else if (!imageUrl.startsWith('http')) {
+                            imageUrl = `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`;
+                        }
+                        activityImg.src = imageUrl;
+                        activityImg.style.display = 'block';
+                    } else {
+                        activityImg.style.display = 'none';
                     }
                 } else {
-                    gameText.textContent = '';
-                    gameIcon.style.display = 'none';
+                    statusActivity.textContent = '';
+                    activityImg.style.display = 'none';
                 }
             }
         } catch (error) {

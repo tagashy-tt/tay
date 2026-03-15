@@ -125,39 +125,31 @@ html,body{
 .led5 { bottom: 25%; left: -4px; }
 .led6 { top: 25%; left: -4px; }
 
-.activity-section {
-  margin-top: 20px;
-  text-align: center;
-}
-
 .activity-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 10px;
 }
 
-.status-text {
-  font-size: 1rem;
-  color: #dbeafe;
-  opacity: 0.9;
-}
-
-.activity-game {
+.led-indicators {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  gap: 4px;
 }
 
-.game-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
+.led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #666;
+  box-shadow: 0 0 4px rgba(0,0,0,0.5);
+  opacity: 0.7;
 }
 
-.game-text {
-  font-size: 0.9rem;
-  color: #dbeafe;
-  opacity: 0.8;
-}
+.led.online { background-color: #43b581; box-shadow: 0 0 8px #43b581; }
+.led.idle { background-color: #faa61a; box-shadow: 0 0 8px #faa61a; }
+.led.dnd { background-color: #f04747; box-shadow: 0 0 8px #f04747; }
+.led.invisible { background-color: #747f8d; box-shadow: 0 0 8px #747f8d; }
 
 .name{font-family:'Luckiest Guy',cursive;font-size:2.1rem;margin:6px 0 0;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,0.35)}
 .role{margin:6px 0 0;color:#dbeafe;opacity:.9;font-weight:600}
@@ -949,16 +941,24 @@ links-grid .link-card.hire {
 .invisible {
     background: #747f8d;
 }
-.status-text {
-    color: white;
+.activity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
 }
-.status-label {
-    display: block;
-    font-weight: bold;
+.activity-image {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
 }
 .status-activity {
-    display: block;
+    color: white;
     font-size: 0.9em;
-    color: #b9bbbe;
+}
+.status-text {
+    color: white;
+    font-weight: bold;
+    margin-bottom: 5px;
 }
 

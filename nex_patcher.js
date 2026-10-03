@@ -1,39 +1,85 @@
 /*
  * Nex — MP4 Patcher
- * Editing News
+ * 60/120 FPS test version
+ *
+ * - Keeps mvhd untouched
+ * - Preserves approximately 60/120 FPS
+ * - Keeps other FPS untouched
+ * - Keeps TAY metadata handling
  */
-/*
- * variant_a_clean.js
- * Duration-spoof patcher: marca la duracion del mvhd como "desconocida"
- * (0xFF...FF, forzando version=1) e inyecta un tag de encoder falso en
- * udta/meta/ilst/(c)too. Si el moov crece y esta antes del mdat, reajusta
- * los offsets stco/co64 de todas las pistas.
- */
+
 (() => {
   "use strict";
 
-  const UNKNOWN_DURATION = new Uint8Array(8).fill(0xff);
   const ENCODER_TAG = "TAY";
+
   const CONTAINER_TYPES = new Set([
-    "moov", "trak", "mdia", "minf", "stbl", "edts", "dinf", "udta", "meta", "ilst"
+    "moov", "trak", "mdia", "minf", "stbl",
+    "edts", "dinf", "udta", "meta", "ilst"
   ]);
 
-  const fail = (msg) => { throw new Error(msg); };
-  const toU8 = (x) => x instanceof Uint8Array ? x : new Uint8Array(x);
-  const view = (b) => new DataView(b.buffer, b.byteOffset, b.byteLength);
-  const readU32 = (b, o) => view(b).getUint32(o, false);
-  const readU64 = (b, o) => view(b).getBigUint64(o, false);
-  const u32 = (v) => { const o = new Uint8Array(4); view(o).setUint32(0, Number(v) >>> 0, false); return o; };
-  const u64 = (v) => { const o = new Uint8Array(8); view(o).setBigUint64(0, BigInt(v), false); return o; };
-  const str4 = (s) => Uint8Array.from([0,1,2,3].map(i => s.charCodeAt(i) & 0xff));
+  const fail = (msg) => {
+    throw new Error(msg);
+  };
+
+  const toU8 = (x) =>
+    x instanceof Uint8Array ? x : new Uint8Array(x);
+
+  const view = (b) =>
+    new DataView(b.buffer, b.byteOffset, b.byteLength);
+
+  const readU32 = (b, o) =>
+    view(b).getUint32(o, false);
+
+  const readU64 = (b, o) =>
+    view(b).getBigUint64(o, false);
+
+  const u32 = (v) => {
+    const o = new Uint8Array(4);
+    view(o).setUint32(0, Number(v) >>> 0, false);
+    return o;
+  };
+
+  const u64 = (v) => {
+    const o = new Uint8Array(8);
+    view(o).setBigUint64(0, BigInt(v), false);
+    return o;
+  };
+
+  const str4 = (s) =>
+    Uint8Array.from([0, 1, 2, 3].map(i =>
+      s.charCodeAt(i) & 0xff
+    ));
+
   const concat = (parts) => {
     const list = parts.filter(Boolean);
-    const out = new Uint8Array(list.reduce((n, p) => n + p.length, 0));
+
+    const out = new Uint8Array(
+      list.reduce((n, p) => n + p.length, 0)
+    );
+
     let p = 0;
-    for (const part of list) { out.set(part, p); p += part.length; }
+
+    for (const part of list) {
+      out.set(part, p);
+      p += part.length;
+    }
+
     return out;
   };
-  const typeAt = (b, o) => String.fromCharCode(b[o], b[o+1], b[o+2], b[o+3]);
+
+  const typeAt = (b, o) =>
+    String.fromCharCode(
+      b[o],
+      b[o + 1],
+      b[o + 2],
+      b[o + 3]
+    );
+
+
+  // ------------------------------------------------------------
+  // MP4 BOX
+  // ------------------------------------------------------------
 
   class Box {
     constructor(type, payload = null, children = null, prefix = null) {
@@ -41,363 +87,930 @@
       this.payload = payload || new Uint8Array(0);
       this.children = children;
       this.prefix = prefix || new Uint8Array(0);
-      this.start = 0; this.end = 0; this.size = 0; this.header = 8;
+
+      this.start = 0;
+      this.end = 0;
+      this.size = 0;
+      this.header = 8;
     }
-    find(type) { return this.children ? (this.children.find(c => c.type === type) || null) : null; }
-    findAll(type) { return this.children ? this.children.filter(c => c.type === type) : []; }
-    findDeep(...types) { let n = this; for (const t of types) n = n && n.find(t); return n || null; }
+
+    find(type) {
+      return this.children
+        ? (this.children.find(c => c.type === type) || null)
+        : null;
+    }
+
+    findAll(type) {
+      return this.children
+        ? this.children.filter(c => c.type === type)
+        : [];
+    }
+
+    findDeep(...types) {
+      let n = this;
+
+      for (const t of types) {
+        n = n && n.find(t);
+      }
+
+      return n || null;
+    }
+
     serialize() {
       const payload = this.children
-        ? concat([this.prefix, ...this.children.map(c => c.serialize())])
+        ? concat([
+            this.prefix,
+            ...this.children.map(c => c.serialize())
+          ])
         : this.payload;
+
       const size = payload.length + 8;
+
       return size <= 0xffffffff
-        ? concat([u32(size), str4(this.type), payload])
-        : concat([u32(1), str4(this.type), u64(payload.length + 16), payload]);
+        ? concat([
+            u32(size),
+            str4(this.type),
+            payload
+          ])
+        : concat([
+            u32(1),
+            str4(this.type),
+            u64(payload.length + 16),
+            payload
+          ]);
     }
   }
+
+
+  // ------------------------------------------------------------
+  // PARSER
+  // ------------------------------------------------------------
 
   function parseChildren(bytes, start, end) {
     const boxes = [];
     let offset = start;
+
     while (offset + 8 <= end) {
       const size32 = readU32(bytes, offset);
       const type = typeAt(bytes, offset + 4);
-      let header = 8, size;
+
+      let header = 8;
+      let size;
+
       if (size32 === 1) {
         if (offset + 16 > end) break;
+
         const size64 = readU64(bytes, offset + 8);
-        if (size64 > BigInt(Number.MAX_SAFE_INTEGER)) fail(`Box ${type} too large.`);
-        size = Number(size64); header = 16;
+
+        if (size64 > BigInt(Number.MAX_SAFE_INTEGER)) {
+          fail(`Box ${type} too large.`);
+        }
+
+        size = Number(size64);
+        header = 16;
+
       } else if (size32 === 0) {
+
         size = end - offset;
+
       } else {
+
         size = size32;
       }
-      if (!Number.isSafeInteger(size) || size < header || offset + size > end) break;
 
-      const payloadStart = offset + header, payloadEnd = offset + size;
-      const childStart = payloadStart + (type === "meta" ? 4 : 0);
-      const isContainer = CONTAINER_TYPES.has(type);
-      const children = isContainer && childStart <= payloadEnd ? parseChildren(bytes, childStart, payloadEnd) : null;
-      const prefix = children ? bytes.slice(payloadStart, childStart) : null;
-      const payload = children ? null : bytes.slice(payloadStart, payloadEnd);
+      if (
+        !Number.isSafeInteger(size) ||
+        size < header ||
+        offset + size > end
+      ) {
+        break;
+      }
 
-      const box = new Box(type, payload, children, prefix);
-      box.start = offset; box.end = payloadEnd; box.size = size; box.header = header;
-      box.payloadStart = payloadStart; box.payloadEnd = payloadEnd;
-      if (children) { box._src = bytes; }
+      const payloadStart = offset + header;
+      const payloadEnd = offset + size;
+
+      const childStart =
+        payloadStart + (type === "meta" ? 4 : 0);
+
+      const isContainer =
+        CONTAINER_TYPES.has(type);
+
+      const children =
+        isContainer && childStart <= payloadEnd
+          ? parseChildren(
+              bytes,
+              childStart,
+              payloadEnd
+            )
+          : null;
+
+      const prefix =
+        children
+          ? bytes.slice(payloadStart, childStart)
+          : null;
+
+      const payload =
+        children
+          ? null
+          : bytes.slice(payloadStart, payloadEnd);
+
+      const box = new Box(
+        type,
+        payload,
+        children,
+        prefix
+      );
+
+      box.start = offset;
+      box.end = payloadEnd;
+      box.size = size;
+      box.header = header;
+
+      box.payloadStart = payloadStart;
+      box.payloadEnd = payloadEnd;
+
+      if (children) {
+        box._src = bytes;
+      }
 
       boxes.push(box);
+
       offset += size;
     }
+
     return boxes;
   }
 
-  const getPayload = (box) => box.payload && box.payload.length ? box.payload
-    : (box._src ? box._src.subarray(box.payloadStart, box.payloadEnd) : new Uint8Array(0));
+
+  const getPayload = (box) =>
+    box.payload && box.payload.length
+      ? box.payload
+      : (
+          box._src
+            ? box._src.subarray(
+                box.payloadStart,
+                box.payloadEnd
+              )
+            : new Uint8Array(0)
+        );
+
 
   function cloneTree(box) {
     if (!box) return null;
+
     return box.children
-      ? new Box(box.type, null, box.children.map(cloneTree), box.prefix.slice())
-      : new Box(box.type, getPayload(box).slice(), null);
+      ? new Box(
+          box.type,
+          null,
+          box.children.map(cloneTree),
+          box.prefix.slice()
+        )
+      : new Box(
+          box.type,
+          getPayload(box).slice(),
+          null
+        );
   }
 
-  function isUnknownDuration(payload) {
-    if (!payload || payload.length < 32 || payload[0] !== 1) return false;
-    for (let i = 0; i < 8; i++) if (payload[24 + i] !== 0xff) return false;
-    return true;
-  }
 
-  function patchMvhd(payload) {
-    if (!payload || payload.length < 4) fail("Invalid mvhd.");
-    const version = payload[0];
-    if (version === 1) {
-      if (payload.length < 112) fail("Invalid mvhd-1.");
-      const out = payload.slice();
-      out.set(UNKNOWN_DURATION, 24);
-      return out;
-    }
-    if (version !== 0) fail("Unsupported mvhd version.");
-    if (payload.length < 100) fail("Invalid mvhd-0.");
-    // version 0 -> 1 para poder usar el marcador de 8 bytes
-    return concat([
-      Uint8Array.from([1, payload[1], payload[2], payload[3]]),
-      u32(0), payload.slice(4, 8),
-      u32(0), payload.slice(8, 12),
-      payload.slice(12, 16),
-      UNKNOWN_DURATION.slice(),
-      payload.slice(20, 100),
-    ]);
-  }
+  // ------------------------------------------------------------
+  // METADATA
+  // ------------------------------------------------------------
 
-  const strN = (s) => Uint8Array.from(s.split("").map(c => c.charCodeAt(0) & 0xff));
+  const strN = (s) =>
+    Uint8Array.from(
+      s.split("").map(
+        c => c.charCodeAt(0) & 0xff
+      )
+    );
 
-  function injectEncoderTag(moov, tag = ENCODER_TAG) {
-    const encoderBox = () => new Box("\xa9too", concat([u32(1), u32(0), strN(tag)]));
+
+  function injectEncoderTag(
+    moov,
+    tag = ENCODER_TAG
+  ) {
+
+    const encoderBox = () =>
+      new Box(
+        "\xa9too",
+        concat([
+          u32(1),
+          u32(0),
+          strN(tag)
+        ])
+      );
+
 
     let udta = moov.find("udta");
+
     if (!udta) {
-      udta = new Box("udta", null, [new Box("meta", null, [new Box("ilst", null, [encoderBox()])])]);
+
+      udta = new Box(
+        "udta",
+        null,
+        [
+          new Box(
+            "meta",
+            null,
+            [
+              new Box(
+                "ilst",
+                null,
+                [
+                  encoderBox()
+                ]
+              )
+            ]
+          )
+        ]
+      );
+
+      moov.children.push(udta);
+
+      return;
+    }
+
+    let udta = moov.find("udta");
+
+    if (!udta) {
+      udta = new Box(
+        "udta",
+        null,
+        [
+          new Box(
+            "meta",
+            null,
+            [
+              new Box(
+                "ilst",
+                null,
+                [
+                  encoderBox()
+                ]
+              )
+            ]
+          )
+        ]
+      );
+
       moov.children.push(udta);
       return;
     }
+
     let meta = udta.find("meta");
+
     if (!meta) {
-      meta = new Box("meta", null, [new Box("ilst", null, [encoderBox()])]);
+      meta = new Box(
+        "meta",
+        null,
+        [
+          new Box(
+            "ilst",
+            null,
+            [
+              encoderBox()
+            ]
+          )
+        ]
+      );
+
       udta.children.push(meta);
       return;
     }
+
     let ilst = meta.find("ilst");
+
     if (!ilst) {
-      ilst = new Box("ilst", null, [encoderBox()]);
+      ilst = new Box(
+        "ilst",
+        null,
+        [
+          encoderBox()
+        ]
+      );
+
       meta.children.push(ilst);
       return;
     }
-    const kept = ilst.children.filter(c => c.type !== "\xa9too");
-    ilst.children = [...kept, encoderBox()];
+
+    const old = ilst.find("\xa9too");
+
+    if (old) {
+      const index = ilst.children.indexOf(old);
+      ilst.children[index] = encoderBox();
+    } else {
+      ilst.children.push(encoderBox());
+    }
   }
+
+
+  // ------------------------------------------------------------
+  // FPS / STTS
+  // ------------------------------------------------------------
+
+  function getVideoTrack(moov) {
+    if (!moov.children) return null;
+
+    for (const trak of moov.findAll("trak")) {
+      const hdlr = trak.findDeep("mdia", "hdlr");
+
+      if (!hdlr) continue;
+
+      const p = getPayload(hdlr);
+
+      if (
+        p.length >= 12 &&
+        typeAt(p, 8) === "vide"
+      ) {
+        return trak;
+      }
+    }
+
+    return null;
+  }
+
+
+  function getMdhdTimescale(trak) {
+    const mdhd = trak.findDeep("mdia", "mdhd");
+
+    if (!mdhd) return 0;
+
+    const p = getPayload(mdhd);
+
+    if (p.length < 20) return 0;
+
+    const version = p[0];
+
+    if (version === 1) {
+      if (p.length < 32) return 0;
+      return readU32(p, 20);
+    }
+
+    return readU32(p, 12);
+  }
+
+
+  function readSttsEntries(stts) {
+    const p = getPayload(stts);
+
+    if (p.length < 8) return [];
+
+    const entryCount = readU32(p, 4);
+
+    const entries = [];
+
+    let offset = 8;
+
+    for (
+      let i = 0;
+      i < entryCount && offset + 8 <= p.length;
+      i++
+    ) {
+      const sampleCount = readU32(p, offset);
+      const sampleDelta = readU32(p, offset + 4);
+
+      entries.push({
+        sampleCount,
+        sampleDelta
+      });
+
+      offset += 8;
+    }
+
+    return entries;
+  }
+
+
+  function getFpsInfo(trak) {
+    const stts = trak.findDeep(
+      "mdia",
+      "minf",
+      "stbl",
+      "stts"
+    );
+
+    if (!stts) return null;
+
+    const timescale = getMdhdTimescale(trak);
+
+    if (!timescale) return null;
+
+    const entries = readSttsEntries(stts);
+
+    if (!entries.length) return null;
+
+    let totalSamples = 0;
+    let totalDuration = 0;
+
+    for (const e of entries) {
+      totalSamples += e.sampleCount;
+      totalDuration +=
+        e.sampleCount * e.sampleDelta;
+    }
+
+    if (!totalSamples || !totalDuration) {
+      return null;
+    }
+
+    const fps =
+      timescale *
+      totalSamples /
+      totalDuration;
+
+    return {
+      timescale,
+      totalSamples,
+      totalDuration,
+      fps,
+      entries
+    };
+  }
+
+
+  function patchFps(moov) {
+    const trak = getVideoTrack(moov);
+
+    if (!trak) return;
+
+    const info = getFpsInfo(trak);
+
+    if (!info) return;
+
+    const fps = info.fps;
+
+    let target = 0;
+
+    if (Math.abs(fps - 60) < 2) {
+      target = 60;
+    } else if (Math.abs(fps - 120) < 4) {
+      target = 120;
+    }
+
+    if (!target) return;
+
+    const stts = trak.findDeep(
+      "mdia",
+      "minf",
+      "stbl",
+      "stts"
+    );
+
+    if (!stts) return;
+
+    const delta = Math.max(
+      1,
+      Math.round(info.timescale / target)
+    );
+
+    const payload = concat([
+      u32(0),
+      u32(1),
+      u32(info.totalSamples),
+      u32(delta)
+    ]);
+
+    stts.payload = payload;
+    stts.children = null;
+    stts.prefix = new Uint8Array(0);
+  }
+
+
+  // ------------------------------------------------------------
+  // OFFSETS
+  // ------------------------------------------------------------
 
   function findOffsetsBox(trak) {
-    const stbl = trak.findDeep("mdia", "minf", "stbl");
-    return stbl && (stbl.find("stco") || stbl.find("co64"));
+    const stbl = trak.findDeep(
+      "mdia",
+      "minf",
+      "stbl"
+    );
+
+    if (!stbl) return null;
+
+    return (
+      stbl.find("stco") ||
+      stbl.find("co64") ||
+      null
+    );
   }
 
+
   function readOffsets(box) {
-    const payload = getPayload(box);
-    const count = readU32(payload, 4);
-    const wide = box.type === "co64";
-    const step = wide ? 8 : 4;
-    const out = new Array(count);
-    for (let i = 0, p = 8; i < count; i++, p += step) {
-      out[i] = Number(wide ? readU64(payload, p) : BigInt(readU32(payload, p)));
+    const p = getPayload(box);
+
+    if (p.length < 8) return [];
+
+    const count = readU32(p, 4);
+
+    const offsets = [];
+
+    let o = 8;
+
+    if (box.type === "stco") {
+
+      for (
+        let i = 0;
+        i < count && o + 4 <= p.length;
+        i++
+      ) {
+        offsets.push({
+          value: BigInt(readU32(p, o)),
+          index: i
+        });
+
+        o += 4;
+      }
+
+    } else {
+
+      for (
+        let i = 0;
+        i < count && o + 8 <= p.length;
+        i++
+      ) {
+        offsets.push({
+          value: readU64(p, o),
+          index: i
+        });
+
+        o += 8;
+      }
     }
+
+    return offsets;
+  }
+
+
+  function writeOffsets(box, offsets) {
+    const old = getPayload(box);
+
+    const out = old.slice();
+
+    let o = 8;
+
+    for (const item of offsets) {
+
+      if (box.type === "stco") {
+
+        if (
+          item.value < 0n ||
+          item.value > 0xffffffffn
+        ) {
+          fail(
+            "Offset no cabe en stco; se requiere co64."
+          );
+        }
+
+        view(out).setUint32(
+          o,
+          Number(item.value),
+          false
+        );
+
+        o += 4;
+
+      } else {
+
+        view(out).setBigUint64(
+          o,
+          item.value,
+          false
+        );
+
+        o += 8;
+      }
+    }
+
+    box.payload = out;
+  }
+
+
+  function shiftAllOffsets(moov, delta) {
+    if (!delta) return;
+
+    const tracks = moov.findAll("trak");
+
+    for (const trak of tracks) {
+
+      const box = findOffsetsBox(trak);
+
+      if (!box) continue;
+
+      const offsets = readOffsets(box);
+
+      for (const item of offsets) {
+        item.value += BigInt(delta);
+      }
+
+      writeOffsets(box, offsets);
+    }
+  }
+
+
+  // ------------------------------------------------------------
+  // DEEP REPLACE
+  // ------------------------------------------------------------
+
+  function removeMetadata(moov) {
+
+    const udta = moov.find("udta");
+
+    if (!udta || !udta.children) return;
+
+    const meta = udta.find("meta");
+
+    if (!meta || !meta.children) return;
+
+    const ilst = meta.find("ilst");
+
+    if (!ilst || !ilst.children) return;
+
+    ilst.children =
+      ilst.children.filter(
+        b =>
+          b.type !== "\xa9cmt" &&
+          b.type !== "cprt" &&
+          b.type !== "\xa9aut"
+      );
+  }
+
+
+  // ------------------------------------------------------------
+  // PARSE FILE
+  // ------------------------------------------------------------
+
+  function parseFile(bytes) {
+
+    const boxes =
+      parseChildren(
+        bytes,
+        0,
+        bytes.length
+      );
+
+    const ftyp =
+      boxes.find(b => b.type === "ftyp");
+
+    const moov =
+      boxes.find(b => b.type === "moov");
+
+    const mdat =
+      boxes.find(b => b.type === "mdat");
+
+    if (!ftyp) {
+      fail("No se encontró ftyp.");
+    }
+
+    if (!moov) {
+      fail("No se encontró moov.");
+    }
+
+    if (!mdat) {
+      fail("No se encontró mdat.");
+    }
+
+    const mvhd =
+      moov.find("mvhd");
+
+    if (!mvhd) {
+      fail("No se encontró mvhd.");
+    }
+
+    return {
+      boxes,
+      ftyp,
+      moov,
+      mdat,
+      mvhd
+    };
+  }
+
+
+  // ------------------------------------------------------------
+  // APPLY PATCH
+  // ------------------------------------------------------------
+
+  function applyPatch(bytes) {
+
+    const parsed = parseFile(bytes);
+
+    const originalMoov =
+      parsed.moov;
+
+    const moov =
+      cloneTree(originalMoov);
+
+    /*
+     * IMPORTANTE:
+     *
+     * mvhd NO se modifica.
+     *
+     * No se cambia:
+     * - version
+     * - creation time
+     * - modification time
+     * - timescale
+     * - duration
+     *
+     * Tampoco se escribe 0xFF en mvhd.
+     */
+
+    patchFps(moov);
+
+    removeMetadata(moov);
+
+    injectEncoderTag(
+      moov,
+      ENCODER_TAG
+    );
+
+    const oldMoovSize =
+      originalMoov.serialize().length;
+
+    const newMoovBytes =
+      moov.serialize();
+
+    const newMoovSize =
+      newMoovBytes.length;
+
+    const delta =
+      newMoovSize -
+      oldMoovSize;
+
+    /*
+     * Si moov está antes de mdat,
+     * el crecimiento del moov desplaza
+     * físicamente los datos de mdat.
+     */
+
+    if (
+      originalMoov.start <
+      parsed.mdat.start
+    ) {
+      shiftAllOffsets(
+        moov,
+        delta
+      );
+    }
+
+    const finalMoov =
+      moov.serialize();
+
+    const output = [];
+
+    for (const box of parsed.boxes) {
+
+      if (box.type === "moov") {
+        output.push(finalMoov);
+      } else {
+        output.push(
+          bytes.slice(
+            box.start,
+            box.end
+          )
+        );
+      }
+    }
+
+    return concat(output);
+  }
+
+
+  // ------------------------------------------------------------
+  // BYTE CLEANUP
+  // ------------------------------------------------------------
+
+  function byteCleanup(bytes) {
+
+    const replacements = [
+      [
+        "ShoreUploader-v2.0.3",
+        "TAY"
+      ],
+      [
+        "shoreuploader-coded",
+        "TAY"
+      ],
+      [
+        "shoreuploader.com",
+        "TAY"
+      ]
+    ];
+
+    const out = bytes.slice();
+
+    for (const [
+      from,
+      to
+    ] of replacements) {
+
+      const a = strN(from);
+      const b = strN(to);
+
+      if (b.length > a.length) {
+        continue;
+      }
+
+      for (
+        let i = 0;
+        i + a.length <= out.length;
+        i++
+      ) {
+
+        let match = true;
+
+        for (
+          let j = 0;
+          j < a.length;
+          j++
+        ) {
+          if (
+            out[i + j] !== a[j]
+          ) {
+            match = false;
+            break;
+          }
+        }
+
+        if (!match) continue;
+
+        out.set(b, i);
+
+        for (
+          let j = b.length;
+          j < a.length;
+          j++
+        ) {
+          out[i + j] = 0;
+        }
+      }
+    }
+
     return out;
   }
 
-  function writeOffsets(box, offsets) {
-    const use64 = box.type === "co64" || offsets.some(v => v > 0xffffffff);
-    const payload = new Uint8Array(8 + offsets.length * (use64 ? 8 : 4));
-    view(payload).setUint32(4, offsets.length >>> 0, false);
-    let p = 8;
-    for (const off of offsets) {
-      if (use64) { view(payload).setBigUint64(p, BigInt(off), false); p += 8; }
-      else { view(payload).setUint32(p, off >>> 0, false); p += 4; }
-    }
-    return new Box(use64 ? "co64" : "stco", payload);
-  }
 
-  function shiftAllOffsets(moov, delta) {
-    for (const trak of moov.findAll("trak")) {
-      const box = findOffsetsBox(trak);
-      if (!box) continue;
-      const shifted = readOffsets(box).map(v => v + delta);
-      const replacement = writeOffsets(box, shifted);
-      trak.children = trak.children.map(c => replaceDeep(c, box, replacement));
-    }
-  }
+  // ------------------------------------------------------------
+  // CLI
+  // ------------------------------------------------------------
 
-  function replaceDeep(node, target, replacement) {
-    if (node === target) return replacement;
-    if (!node.children) return node;
-    node.children = node.children.map(c => replaceDeep(c, target, replacement));
-    return node;
-  }
+  async function main() {
 
-  function parseFile(bytes) {
-    const source = toU8(bytes);
-    const top = parseChildren(source, 0, source.length);
-    const ftyp = top.filter(b => b.type === "ftyp");
-    const moovs = top.filter(b => b.type === "moov");
-    const mdats = top.filter(b => b.type === "mdat");
-    if (ftyp.length !== 1 || moovs.length !== 1 || mdats.length !== 1) fail("Invalid MP4.");
-    if (top.some(b => b.type === "moof")) fail("Fragmented MP4 not supported.");
+    const args =
+      typeof process !== "undefined"
+        ? process.argv.slice(2)
+        : [];
 
-    const moovBox = moovs[0], mdatBox = mdats[0];
-    const mvhd = moovBox.find("mvhd");
-    if (!mvhd) fail("Missing mvhd.");
-    if (isUnknownDuration(getPayload(mvhd))) fail("Already patched.");
+    if (args.length < 2) {
 
-    return { source, top, ftypBox: ftyp[0], moovBox, mdatBox };
-  }
-
-  function applyPatch(sourceBytes, info) {
-    const source = toU8(sourceBytes);
-    const moov = cloneTree(info.moovBox);
-
-    const mvhd = moov.find("mvhd");
-    mvhd.payload = patchMvhd(getPayload(mvhd));
-
-    // --- Preserve 60/120fps ---
-// Detect the original video FPS from the stts timing table.
-// If it is 60fps or 120fps, preserve that FPS.
-// Other FPS values are also left untouched.
-
-for (const trak of moov.findAll("trak")) {
-  const hdlr = trak.findDeep("mdia", "hdlr");
-  if (!hdlr) continue;
-
-  const hp = getPayload(hdlr);
-  const handler = String.fromCharCode(hp[8], hp[9], hp[10], hp[11]);
-
-  if (handler !== "vide") continue;
-
-  const mdhd = trak.findDeep("mdia", "mdhd");
-  if (!mdhd) continue;
-
-  const mp = getPayload(mdhd);
-  const version = mp[0];
-  const timescale = readU32(mp, version === 1 ? 24 : 12);
-
-  const stbl = trak.findDeep("mdia", "minf", "stbl");
-  if (!stbl) continue;
-
-  const stts = stbl.find("stts");
-  if (!stts) continue;
-
-  const sp = getPayload(stts);
-  const count = readU32(sp, 4);
-
-  // Calculate the original average FPS.
-  let totalSamples = 0;
-  let totalDuration = 0;
-
-  for (let i = 0, o = 8; i < count; i++, o += 8) {
-    const sampleCount = readU32(sp, o);
-    const sampleDelta = readU32(sp, o + 4);
-
-    totalSamples += sampleCount;
-    totalDuration += sampleCount * sampleDelta;
-  }
-
-  if (!totalSamples || !totalDuration) continue;
-
-  const fps = timescale * totalSamples / totalDuration;
-
-  // Preserve 60 or 120 FPS.
-  let targetFps = null;
-
-  if (Math.abs(fps - 60) < 1) {
-    targetFps = 60;
-  } else if (Math.abs(fps - 120) < 1) {
-    targetFps = 120;
-  }
-
-  // If it isn't 60/120, don't modify the timing.
-  if (!targetFps) continue;
-
-  const delta = Math.round(timescale / targetFps);
-
-  // Total samples stay the same; only timing is normalized.
-  const newPayload = new Uint8Array(16);
-
-  view(newPayload).setUint32(0, 0, false);           // version + flags
-  view(newPayload).setUint32(4, 1, false);           // entry count
-  view(newPayload).setUint32(8, totalSamples, false);
-  view(newPayload).setUint32(12, delta, false);
-
-  stts.payload = newPayload;
-  stts.children = null;
-
-  break; // only video track
-}
-    
-    // --- ©too TAY tag + copyright cleanup ---
-    // 1. Inject ©too TAY (replaces any existing encoder tag)
-    injectEncoderTag(moov, ENCODER_TAG);
-
-    // 2. Strip ShoreUploader traces: remove udta children with unwanted tags
-    //    (©cmt, cprt, ©aut) and replace with TAY copyright
-    const udta = moov.find("udta");
-    if (udta && udta.children) {
-      // Remove ©cmt (Comment: shoreuploader.com) and cprt
-      udta.children = udta.children.filter(c =>
-        c.type !== "©cmt" && c.type !== "cprt" && c.type !== "©aut"
+      console.error(
+        "Uso: node nex_patcher.js input.mp4 output.mp4"
       );
-      // Add TAY copyright box
-      const cprtPayload = concat([u32(1), u32(0), strN("TAY")]);
-      udta.children.push(new Box("cprt", cprtPayload));
+
+      return;
     }
 
-    // 3. Rewrite Encoded_Application tag (©too already handled by injectEncoderTag)
+    const fs =
+      await import("node:fs/promises");
 
-    const oldSize = info.moovBox.size;
-    const moovBeforeMdat = info.moovBox.start < info.mdatBox.start;
+    const input =
+      new Uint8Array(
+        await fs.readFile(args[0])
+      );
 
-    let serialized = moov.serialize();
+    const patched =
+      applyPatch(input);
 
-    if (moovBeforeMdat) {
-      for (let pass = 0; pass < 4; pass++) {
-        const delta = serialized.length - oldSize;
-        const before = serialized.length;
-        shiftAllOffsets(moov, delta);
-        serialized = moov.serialize();
-        if (serialized.length === before) break;
-      }
-    }
+    const cleaned =
+      byteCleanup(patched);
 
-    const out = [];
-    for (const box of info.top) {
-      out.push(box === info.moovBox ? serialized : source.subarray(box.start, box.end));
-    }
-    let result = concat(out);
+    await fs.writeFile(
+      args[1],
+      cleaned
+    );
 
-    // --- Byte-level cleanup: replace third-party metadata strings ---
-    function replaceStr(buf, needle, replacement) {
-      const enc = typeof needle === 'string'
-        ? Uint8Array.from(needle.split('').map(c => c.charCodeAt(0) & 0xff))
-        : needle;
-      const rep = typeof replacement === 'string'
-        ? Uint8Array.from(replacement.split('').map(c => c.charCodeAt(0) & 0xff))
-        : replacement;
-      let i = 0;
-      while (i + enc.length <= buf.length) {
-        let match = true;
-        for (let j = 0; j < enc.length; j++) if (buf[i + j] !== enc[j]) { match = false; break; }
-        if (match) {
-          // replace with rep, pad remainder with 0x00
-          const end = Math.min(i + enc.length, buf.length);
-          for (let j = 0; j < rep.length && i + j < buf.length; j++) buf[i + j] = rep[j];
-          for (let j = rep.length; j < enc.length && i + j < buf.length; j++) buf[i + j] = 0x00;
-          i += enc.length;
-        } else { i++; }
-      }
-      return buf;
-    }
-
-    result = replaceStr(result, 'ShoreUploader-v2.0.3', 'TAY');
-    result = replaceStr(result, 'shoreuploader-coded',   'TAY-coded          ');
-    result = replaceStr(result, 'shoreuploader.com',     'TAY              ');
-
-    return result;
+    console.log(
+      "OK:",
+      args[0],
+      "->",
+      args[1]
+    );
   }
 
-  function patchVideo(input) {
-    const bytes = toU8(input);
-    const info = parseFile(bytes);
-    return applyPatch(bytes, info);
+
+  if (
+    typeof process !== "undefined" &&
+    process.argv
+  ) {
+    main().catch(err => {
+      console.error(
+        "ERROR:",
+        err.message
+      );
+
+      process.exitCode = 1;
+    });
   }
 
-  const api = { patchVideo, parseFile, applyPatch, isUnknownDuration, ENCODER_TAG };
-  if (typeof module !== "undefined" && module.exports) module.exports = api;
-  if (typeof window !== "undefined") window.DurationSpoofPatcher = api;
-
-  if (typeof require !== "undefined" && typeof module !== "undefined" && require.main === module) {
-    const fs = require("fs");
-    const [inPath, outPath] = process.argv.slice(2);
-    if (!inPath || !outPath) {
-      console.error("Uso: node " + require("path").basename(__filename) + " input.mp4 output.mp4");
-      process.exit(1);
-    }
-    try {
-      const data = fs.readFileSync(inPath);
-      const out = patchVideo(new Uint8Array(data));
-      fs.writeFileSync(outPath, Buffer.from(out));
-      console.log("OK -> " + outPath);
-    } catch (e) {
-      console.error("ERROR:", e.message || e);
-      process.exit(1);
-    }
-  }
 })();

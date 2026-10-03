@@ -229,48 +229,80 @@
     const mvhd = moov.find("mvhd");
     mvhd.payload = patchMvhd(getPayload(mvhd));
 
-    // --- 120fps trigger ---
-    // Rewrite stts of the video track: merge all entries into a single entry
-    // with delta = timescale/120, making the declared framerate 120fps.
-    // The actual sample data is untouched -- only the timing table changes.
-    for (const trak of moov.findAll("trak")) {
-      const hdlr = trak.findDeep("mdia", "hdlr");
-      if (!hdlr) continue;
-      const hp = getPayload(hdlr);
-      const handler = String.fromCharCode(hp[8], hp[9], hp[10], hp[11]);
-      if (handler !== "vide") continue;
+    // --- Preserve 60/120fps ---
+// Detect the original video FPS from the stts timing table.
+// If it is 60fps or 120fps, preserve that FPS.
+// Other FPS values are also left untouched.
 
-      const mdhd = trak.findDeep("mdia", "mdhd");
-      if (!mdhd) continue;
-      const mp = getPayload(mdhd);
-      const version = mp[0];
-      const timescale = readU32(mp, version === 1 ? 24 : 12);
-      const delta120  = Math.round(timescale / 120); // e.g. 19200/120 = 160
+for (const trak of moov.findAll("trak")) {
+  const hdlr = trak.findDeep("mdia", "hdlr");
+  if (!hdlr) continue;
 
-      const stbl = trak.findDeep("mdia", "minf", "stbl");
-      if (!stbl) continue;
-      const stts = stbl && stbl.find("stts");
-      if (!stts) continue;
+  const hp = getPayload(hdlr);
+  const handler = String.fromCharCode(hp[8], hp[9], hp[10], hp[11]);
 
-      const sp = getPayload(stts);
-      const count = readU32(sp, 4);
-      // Sum total samples across all entries
-      let totalSamples = 0;
-      for (let i = 0, o = 8; i < count; i++, o += 8) {
-        totalSamples += readU32(sp, o);
-      }
+  if (handler !== "vide") continue;
 
-      // Build new stts: 1 entry, all samples at 120fps delta
-      const newPayload = new Uint8Array(4 + 4 + 4 + 8); // flags + count(1) + entry
-      view(newPayload).setUint32(0, 0, false);     // version+flags
-      view(newPayload).setUint32(4, 1, false);     // entry count = 1
-      view(newPayload).setUint32(8, totalSamples, false);  // sample count
-      view(newPayload).setUint32(12, delta120, false);     // sample delta
-      stts.payload = newPayload;
-      stts.children = null;
-      break; // only video track
-    }
+  const mdhd = trak.findDeep("mdia", "mdhd");
+  if (!mdhd) continue;
 
+  const mp = getPayload(mdhd);
+  const version = mp[0];
+  const timescale = readU32(mp, version === 1 ? 24 : 12);
+
+  const stbl = trak.findDeep("mdia", "minf", "stbl");
+  if (!stbl) continue;
+
+  const stts = stbl.find("stts");
+  if (!stts) continue;
+
+  const sp = getPayload(stts);
+  const count = readU32(sp, 4);
+
+  // Calculate the original average FPS.
+  let totalSamples = 0;
+  let totalDuration = 0;
+
+  for (let i = 0, o = 8; i < count; i++, o += 8) {
+    const sampleCount = readU32(sp, o);
+    const sampleDelta = readU32(sp, o + 4);
+
+    totalSamples += sampleCount;
+    totalDuration += sampleCount * sampleDelta;
+  }
+
+  if (!totalSamples || !totalDuration) continue;
+
+  const fps = timescale * totalSamples / totalDuration;
+
+  // Preserve 60 or 120 FPS.
+  let targetFps = null;
+
+  if (Math.abs(fps - 60) < 1) {
+    targetFps = 60;
+  } else if (Math.abs(fps - 120) < 1) {
+    targetFps = 120;
+  }
+
+  // If it isn't 60/120, don't modify the timing.
+  if (!targetFps) continue;
+
+  const delta = Math.round(timescale / targetFps);
+
+  // Total samples stay the same; only timing is normalized.
+  const newPayload = new Uint8Array(16);
+
+  view(newPayload).setUint32(0, 0, false);           // version + flags
+  view(newPayload).setUint32(4, 1, false);           // entry count
+  view(newPayload).setUint32(8, totalSamples, false);
+  view(newPayload).setUint32(12, delta, false);
+
+  stts.payload = newPayload;
+  stts.children = null;
+
+  break; // only video track
+}
+    
     // --- ©too TAY tag + copyright cleanup ---
     // 1. Inject ©too TAY (replaces any existing encoder tag)
     injectEncoderTag(moov, ENCODER_TAG);

@@ -324,39 +324,11 @@
           )
         ]
       );
+   moov.children.push(udta);
+   return;
 
-      moov.children.push(udta);
-
-      return;
     }
-
-    let udta = moov.find("udta");
-
-    if (!udta) {
-      udta = new Box(
-        "udta",
-        null,
-        [
-          new Box(
-            "meta",
-            null,
-            [
-              new Box(
-                "ilst",
-                null,
-                [
-                  encoderBox()
-                ]
-              )
-            ]
-          )
-        ]
-      );
-
-      moov.children.push(udta);
-      return;
-    }
-
+    
     let meta = udta.find("meta");
 
     if (!meta) {
